@@ -2,14 +2,14 @@ import React from 'react'
 import crossicon from '../assets/cross_icon.png'
 import Home from '../Pages/Home'
 import { Navigate, useNavigate } from 'react-router-dom';
-function ShowModel({isopen,setisopen,children}) {
+function ShowModel({isopen,setIsOpen,children}) {
     const navigate=useNavigate()
    
     if(!isopen){
         return null;
     }
     const handleClose = () => {
-    setisopen(false);
+    setIsOpen(false);
     navigate("/"); // navigate to home page
   };
   return (

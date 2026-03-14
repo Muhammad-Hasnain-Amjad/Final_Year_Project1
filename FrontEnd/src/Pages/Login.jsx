@@ -10,7 +10,7 @@ export default function Login() {
 
   // Single state for email and password
   const [form, setForm] = useState({ email: "", password: "" });
-
+const [role, setRole] = useState("user");
   // Password toggle
   const [showPassword, setShowPassword] = useState(false);
 
@@ -37,28 +37,50 @@ export default function Login() {
   };
 
   // Handle submit
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      const result = await axios.post(baseURL + "/login", form);
+  try {
 
-      if (!result.data.status) {
-        setAlert({ show: true, type: "error", message: result.data.message });
-      } else {
-        const token = result.data.usertoken;
-        const name = result.data.name;
-        localStorage.setItem("token", token);
-        localStorage.setItem("name", name);
+    // Decide API based on role
+    let url = "";
 
-        setForm({ email: "", password: "" });
-        toast.success("Login Successfully!");
-        navigate("/"); // Redirect to home after login
-      }
-    } catch (e) {
-      setAlert({ show: true, type: "error", message: e.toString() });
+    if (role === "lawyer") {
+      url = "http://localhost:5000/lawyer/login";
+    } 
+    else if (role === "doctor") {
+      url = "http://localhost:5000/doctor/login";
+    } 
+    else {
+      url = "http://localhost:5000/user/login";
     }
-  };
+
+    const result = await axios.post(url, form);
+
+    if (!result.data.status) {
+      setAlert({ show: true, type: "error", message: result.data.message });
+    } else {
+
+      const token = result.data.usertoken;
+      const name = result.data.name;
+      const id = result.data.id;   // backend should return _id
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("name", name);
+
+      setForm({ email: "", password: "" });
+
+      toast.success("Login Successfully!");
+
+      // Navigate based on role
+      navigate(`/${role}/${id}`);
+
+    }
+
+  } catch (e) {
+    setAlert({ show: true, type: "error", message: e.toString() });
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black px-6 py-10">
@@ -123,6 +145,47 @@ export default function Login() {
                 focus:outline-none focus:ring-2 focus:ring-yellow-400 pr-12"
               placeholder="Enter your password"
             />
+            {/* Character */}
+          {/* Role Selection */}
+<div className="flex flex-col gap-2">
+  <label className="font-semibold text-yellow-700">
+    Login As
+  </label>
+
+  <div className="flex gap-6">
+    
+    <label className="flex items-center gap-2 cursor-pointer">
+      <input
+        type="radio"
+        name="role"
+        value="lawyer"
+        onChange={(e) => setRole(e.target.value)}
+      />
+      Lawyer
+    </label>
+
+    <label className="flex items-center gap-2 cursor-pointer">
+      <input
+        type="radio"
+        name="role"
+        value="doctor"
+        onChange={(e) => setRole(e.target.value)}
+      />
+      Doctor
+    </label>
+
+    <label className="flex items-center gap-2 cursor-pointer">
+      <input
+        type="radio"
+        name="role"
+        value="user"
+        onChange={(e) => setRole(e.target.value)}
+      />
+      User
+    </label>
+
+  </div>
+</div>
             <button
               type="button"
               onClick={() => setShowPassword((s) => !s)}

@@ -2,6 +2,8 @@ let lawyermodel=require("../Models/Lawyermodel.js")
 const uploadFile=require("../../Utils/upLoadfile")
 const { deleteCloudinaryFiles } = require("../../Utils/Cloudinary.js")
 const sendEmail=require("../../Utils/sendEmail.js")
+ const jwt = require("jsonwebtoken");
+
 async function addlawyer(req, res) {
   try {
     const {
@@ -250,5 +252,89 @@ await lawyer.deleteOne();
   }
 }
 
+async function loginlawyer(req, res) {
+  let accountid = null;
 
-module.exports={addlawyer,getlawyers,idlawyer,statuslawyer,deletelawyer}
+  try {
+    const { email, password } = req.body;
+
+    const lawyer = await lawyermodel.findOne({ "registration.email": email });
+
+    if (!lawyer) {
+      return res.status(404).json({
+        status: false,
+        id: accountid,
+        message: "Lawyer not found",
+      });
+    }
+
+    if (lawyer.registration.password != password) {
+      return res.status(400).json({
+        status: false,
+        id: accountid,
+        message: "Invalid password",
+      });
+    }
+
+    accountid = lawyer._id;
+
+    // TOKEN GENERATION
+    const token = jwt.sign(
+      {
+        id: lawyer._id,
+        role: "lawyer",
+        email: lawyer.registration.email,
+      },
+     process.env.lawyer_key,   // put this in .env in production
+      { expiresIn: "7d" }
+    );
+
+    return res.json({
+      status: true,
+      id: accountid,
+      name: lawyer.registration.fullName,
+      usertoken: token,
+      message: "Login successful",
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: err.message,
+    });
+  }
+}
+ async function IDlawyer(req, res) {
+  try {
+
+    const { id } = req.params;
+
+    const lawyer = await lawyermodel.findById(id);
+
+    if (!lawyer) {
+      return res.status(404).json({
+        success: false,
+        message: "Lawyer not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: lawyer
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+
+  }
+}
+
+
+module.exports={addlawyer,getlawyers,idlawyer,statuslawyer,deletelawyer,loginlawyer,IDlawyer}

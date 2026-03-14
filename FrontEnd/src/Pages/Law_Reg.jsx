@@ -134,7 +134,7 @@ const[isOpen,setIsOpen]=useState(false)
     <div className="bg-black text-white px-6 py-12 flex justify-center">
        <Loader show={loading} />
 <ShowModel isopen={isOpen} setIsOpen={setIsOpen}>
-  <TempMessage type={statusMessage} setisopen={setIsOpen} />
+  <TempMessage type={statusMessage} setIsOpen={setIsOpen} />
 </ShowModel>
       <form
         onSubmit={handleSubmit}
@@ -389,7 +389,7 @@ const[isOpen,setIsOpen]=useState(false)
               name="username"
               value={form.username}
               onChange={handleChange}
-              className="w-full p-2 rounded bg.white mb-3 outline-none focus:ring-2 focus:ring-yellow-400"
+              className="w-full p-2 text-black rounded bg.white mb-3 outline-none focus:ring-2 focus:ring-yellow-400"
               required
             />
 
@@ -400,7 +400,7 @@ const[isOpen,setIsOpen]=useState(false)
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full p-2 rounded bg.white mb-3 outline-none focus:ring-2 focus:ring-yellow-400"
+                className="w-full p-2 rounded bg-white text-black mb-3 outline-none focus:ring-2 focus:ring-yellow-400"
                 required
               />
               <button

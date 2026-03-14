@@ -1,6 +1,6 @@
 let express=require("express");
 const multer = require("multer");
-let{addlawyer,getlawyers,idlawyer,statuslawyer,deletelawyer}=require("../Controllers/lawyer_cont.js")
+let{addlawyer,getlawyers,idlawyer,statuslawyer,deletelawyer,loginlawyer,IDlawyer}=require("../Controllers/lawyer_cont.js")
 let lawyerrouter=express.Router();
 
 
@@ -39,4 +39,7 @@ lawyerrouter.get("/get",getlawyers)
 lawyerrouter.get("/idlawyer/:id",idlawyer)
 lawyerrouter.patch("/idlawyer/:id/status",statuslawyer)
 lawyerrouter.delete("/deletelawyer/:id",deletelawyer)
+lawyerrouter.post("/login",loginlawyer)
+lawyerrouter.get("/idlawyer/:id",IDlawyer)
+
 module.exports={lawyerrouter}

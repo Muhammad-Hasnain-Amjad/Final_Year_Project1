@@ -11,6 +11,7 @@ import  MyAppointments from './Pages/MyAppointments'
 import Dr_Reg from './Pages/Dr_Reg';
 import Law_Reg from './Pages/Law_Reg';
 import Signup from './Pages/Signup';
+import View_Lawyer_Profile from  './Lawyers_files/view_Lawyer_Profile'
 function App() {
   
 const route=createBrowserRouter([
@@ -71,7 +72,7 @@ const route=createBrowserRouter([
   )
  },
  {
-  path:"myprofile",
+  path:"/myprofile",
   element:(
     <div>
       <MyProfile />
@@ -79,7 +80,7 @@ const route=createBrowserRouter([
   )
  },
  {
-  path:"myappointments",
+  path:"/myappointments",
   element:(
     <div>
       <MyAppointments />
@@ -99,6 +100,14 @@ const route=createBrowserRouter([
   element:(
     <div>
       <Law_Reg />
+    </div>
+  )
+ },
+ {
+  path:"/lawyer/:id",
+  element:(
+    <div>
+<View_Lawyer_Profile />
     </div>
   )
  }
