@@ -49,7 +49,7 @@ function Footer() {
           <h2 className="text-lg font-semibold text-yellow-400 mb-4">GET IN TOUCH</h2>
           <ul className="space-y-3 text-gray-300 text-sm">
             <li>📞 +92 300 1234567</li>
-            <li>✉️ support@cureandcounsel.com</li>
+            <li>✉️ curecounsel@gmail.com</li>
             <li className="pt-2 text-gray-400">
               Lahore, Pakistan
             </li>

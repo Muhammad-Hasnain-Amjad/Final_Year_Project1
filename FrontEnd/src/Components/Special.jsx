@@ -2,6 +2,8 @@ import React from 'react';
 import { DrData, LawyersData,services } from '../assets/assets';
 import { NavLink, useNavigate } from 'react-router-dom';
 import dr from '../assets/druncle.jpg';
+import { FaHeartbeat, FaGavel, FaBrain } from "react-icons/fa";
+
 import lawyer from '../assets/lawyeruncle.jpg';
 
 
@@ -63,54 +65,122 @@ const Special = () => {
 
         {/* WHY CURE & COUNSEL SECTION */}
 
-<div className="w-full mt-14 flex flex-col gap-10 px-4 md:px-10 lg:px-20">
+ <div className="bg-black text-white px-6 py-16 rounded-xl">
 
-  {/* Doctors Card */}
-  <div className="group relative bg-gray-100 rounded-2xl shadow-md flex flex-col md:flex-row items-center justify-between overflow-hidden transform transition-transform duration-500 hover:scale-105">
-    {/* Text Box */}
-    <div className="md:w-1/2 p-6">
-      <h2 className="text-2xl font-semibold mb-4">Why Choose Our Doctors?</h2>
-      <p className="text-gray-700 leading-relaxed">
-        Cure & Counsel connects you with highly experienced and trusted doctors across Pakistan.
-        Thousands of patients rely on our platform for reliable and quick medical assistance. With
-        verified profiles, real patient feedback, and instant booking, you get the safest and most
-        convenient healthcare experience.
-      </p>
-    </div>
+      {/* TITLE */}
+      <h1 className="text-2xl md:text-3xl font-semibold mb-10">
+        Expertise on demand
+      </h1>
 
-    {/* Image Box */}
-    <div className="md:w-1/2 flex justify-center p-6">
-      <img
-        src={dr}
-        alt="Doctors"
-        className="w-48 h-48 rounded-xl object-cover shadow-md"
-      />
+      {/* TOP GRID */}
+      <div className="grid md:grid-cols-2 gap-6 ">
+
+        {/* HEALTHCARE CARD */}
+        <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800 hover:border-yellow-400 transition">
+
+          {/* ICON */}
+          <FaHeartbeat className="text-yellow-400 text-3xl mb-4 animate-pulse drop-shadow-[0_0_10px_rgba(250,204,21,0.7)]" />
+
+          <h2 className="text-xl font-semibold mb-2">
+            Healthcare Excellence
+          </h2>
+
+          <p className="text-gray-400 mb-4">
+            Access top-tier medical specialists, surgeons, and therapists
+            for consultations from your home.
+          </p>
+
+          {/* TAGS */}
+          <div className="flex gap-2 flex-wrap">
+            <span className="bg-gray-800 px-3 py-1 rounded-full text-sm">
+              Surgery
+            </span>
+            <span className="bg-gray-800 px-3 py-1 rounded-full text-sm">
+              Pediatrics
+            </span>
+            <span className="bg-gray-800 px-3 py-1 rounded-full text-sm">
+              Mental Health
+            </span>
+          </div>
+        </div>
+
+        {/* LEGAL CARD */}
+        <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800 hover:border-yellow-400 transition">
+
+          <FaGavel className="text-yellow-400 text-3xl mb-4 animate-pulse drop-shadow-[0_0_10px_rgba(250,204,21,0.7)]" />
+
+          <h2 className="text-xl font-semibold mb-2">
+            Legal Counsel
+          </h2>
+
+          <p className="text-gray-400 mb-4">
+            Strategic legal advice for corporate, family, and criminal
+            law matters.
+          </p>
+
+          <ul className="space-y-2 text-gray-300">
+            <li className="flex items-center gap-2">
+              <span className="text-yellow-400">✔</span> Document Review
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-yellow-400">✔</span> Case Strategy
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      {/* BOTTOM GRID */}
+      <div className="grid md:grid-cols-2 gap-6 mt-6">
+
+        {/* WELLNESS */}
+        <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800 hover:border-yellow-400 transition">
+
+          <FaBrain className="text-yellow-400 text-3xl mb-4 animate-pulse drop-shadow-[0_0_10px_rgba(250,204,21,0.7)]" />
+
+          <h2 className="text-lg font-semibold mb-2">Wellness</h2>
+
+          <p className="text-gray-400 text-sm">
+            Holistic approaches to health and mental clarity.
+          </p>
+        </div>
+
+        {/* GLOBAL NETWORK */}
+        <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800 hover:border-yellow-400 transition flex flex-col md:flex-row items-center justify-between">
+
+  {/* TEXT */}
+  <div className="mb-4 md:mb-0">
+    <h2 className="text-lg font-semibold mb-2">
+      Global Network
+    </h2>
+    <p className="text-gray-400 text-sm">
+      Professionals licensed in 40+ countries ready to assist you.
+    </p>
+  </div>
+
+  {/* IMAGES */}
+  <div className="flex flex-wrap md:flex-nowrap gap-3">
+    <img
+      src="https://randomuser.me/api/portraits/men/32.jpg"
+      className="w-10 h-10 rounded-full border-2 border-black"
+    />
+    <img
+      src="https://randomuser.me/api/portraits/women/44.jpg"
+      className="w-10 h-10 rounded-full border-2 border-black"
+    />
+    <img
+      src="https://randomuser.me/api/portraits/men/55.jpg"
+      className="w-10 h-10 rounded-full border-2 border-black"
+    />
+    <div className="w-10 h-10 rounded-full bg-yellow-400 text-black flex items-center justify-center text-sm font-bold">
+      +15k
     </div>
   </div>
 
-  {/* Lawyers Card */}
-  <div className="group relative bg-yellow-50 rounded-2xl shadow-md flex flex-col md:flex-row-reverse items-center justify-between overflow-hidden transform transition-transform duration-500 hover:scale-105">
-    {/* Text Box */}
-    <div className="md:w-1/2 p-6 ">
-      <h2 className="text-2xl font-semibold mb-4">Why Choose Our Lawyers?</h2>
-      <p className="text-gray-700 leading-relaxed">
-        Whether it's property matters, family issues, business contracts, or legal disputes  our
-        expert lawyers are here to help. Cure & Counsel ensures you get access to qualified,
-        experienced, and trusted legal professionals. Thousands of clients have already solved
-        their cases through our platform.
-      </p>
-    </div>
-
-    {/* Image Box */}
-    <div className="md:w-1/2 flex justify-center p-6">
-      <img
-        src={lawyer}
-        alt="Lawyers"
-        className="w-48 h-48 rounded-xl object-cover shadow-md"
-      />
-    </div>
-  </div>
 </div>
+
+      </div>
+    </div>
         {/* Our Services */}
 <div className="w-full mt-20 px-4 md:px-10 lg:px-20">
       

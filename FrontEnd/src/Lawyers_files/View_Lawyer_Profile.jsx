@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import Loader from '../Components/Loader'
 import {
   FaMapMarkerAlt,
   FaCommentDots,
@@ -32,9 +33,7 @@ function View_Lawyer_Profile() {
 
   if (!lawyer)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-yellow-400">
-        Loading Profile...
-      </div>
+      <Loader />
     );
 
   const { registration, profile, status, comments } = lawyer;
@@ -164,35 +163,11 @@ function View_Lawyer_Profile() {
 
       </div>
 
-      {/* MAP SECTION */}
-
-      <div className="mt-10">
-
-        <h2 className="text-yellow-400 text-xl mb-4">Office Location</h2>
-
-        <iframe
-          title="map"
-          width="100%"
-          height="300"
-          className="rounded-lg border border-yellow-500"
-          src={`https://maps.google.com/maps?q=${registration.officeAddress}&output=embed`}
-        ></iframe>
-
-      </div>
-
+  
       {/* BOOK CONSULTATION */}
 
-      <div className="mt-10">
-
-        <button className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-bold hover:scale-105 transition">
-          📅 Book Consultation
-        </button>
-
-      </div>
-
-      {/* COMMENTS */}
-
-      <div className="mt-10">
+      
+      <div className="mt-10 flex flex-row  justify-around items-center gap-2">
 
         <button
           onClick={() => setShowComments(!showComments)}
@@ -201,57 +176,18 @@ function View_Lawyer_Profile() {
           View Reviews
         </button>
 
-        {showComments && (
-
-          <div className="mt-4 space-y-4">
-
-            {comments.length === 0 ? (
-              <p className="text-gray-400">No reviews yet</p>
-            ) : (
-              comments.map((c, i) => (
-                <div
-                  key={i}
-                  className="bg-gray-900 border border-yellow-500 p-4 rounded-lg"
-                >
-
-                  <p>{c.comment}</p>
-
-                  <div className="flex gap-2 text-yellow-400 mt-2">
-                    <FaStar /> {c.rating}
-                  </div>
-
-                </div>
-              ))
-            )}
-
-          </div>
-
-        )}
+      <button
+          onClick={() => setShowComments(!showComments)}
+          className="bg-yellow-400 text-black px-6 py-2 rounded-lg"
+        >
+          Edit Profile
+        </button>
 
       </div>
 
-      {/* LIVE CHAT SECTION */}
+      
 
-      {showChat && (
 
-        <div className="fixed bottom-4 right-4 w-80 bg-gray-900 border border-yellow-500 rounded-xl shadow-lg">
-
-          <div className="bg-yellow-400 text-black p-3 font-bold">
-            Live Chat
-          </div>
-
-          <div className="p-4 h-40 overflow-y-auto text-sm">
-            Chat messages will appear here...
-          </div>
-
-          <input
-            placeholder="Type message..."
-            className="w-full p-2 bg-black border-t border-yellow-500 text-white"
-          />
-
-        </div>
-
-      )}
 
     </div>
   );

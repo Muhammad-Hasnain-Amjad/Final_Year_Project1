@@ -5,6 +5,7 @@ import Header from '../Components/Header'
 import Special from '../Components/Special'
 import Footer from '../Components/Footer'
 import ProfReg from '../Components/ProfReg'
+import WorkflowSection from '../Components/WorkflowSection'
 const Home = () => {
   return (
     <div className="h-screen overflow-y-scroll scrollbar-hide">
@@ -12,6 +13,7 @@ const Home = () => {
   <Header />
  <Special />
  <ProfReg />
+<WorkflowSection />
  <Footer />
     </div>
   )
