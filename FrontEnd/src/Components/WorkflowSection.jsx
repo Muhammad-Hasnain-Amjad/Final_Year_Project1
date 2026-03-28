@@ -1,6 +1,7 @@
 import { FaSearch, FaComments, FaCheckCircle } from "react-icons/fa";
 import { motion } from "framer-motion";
-
+import { Navigate, useNavigate } from "react-router-dom";
+import Signup from '../Pages/Signup'
 const scrollAnim = (delay = 0) => ({
   initial: { opacity: 0, y: 50 },
   whileInView: { opacity: 1, y: 0 },
@@ -9,6 +10,7 @@ const scrollAnim = (delay = 0) => ({
 });
 
 function WorkflowSection() {
+  const navigate=useNavigate()
   return (
     <div className="bg-black text-white px-6 py-20 mt-10">
 
@@ -77,7 +79,7 @@ function WorkflowSection() {
             important health and legal decisions.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button className="px-6 py-3 bg-black text-yellow-400 font-semibold rounded-md border border-black hover:scale-105 transition">
+            <button onClick={()=>navigate("/signup")} className="px-6 py-3 bg-black text-yellow-400 font-semibold rounded-md border border-black hover:scale-105 transition">
               Get Started Now
             </button>
           </div>
