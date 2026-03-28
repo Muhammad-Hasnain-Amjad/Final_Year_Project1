@@ -337,4 +337,50 @@ async function loginlawyer(req, res) {
 }
 
 
-module.exports={addlawyer,getlawyers,idlawyer,statuslawyer,deletelawyer,loginlawyer,IDlawyer}
+// PATCH update lawyer
+
+
+
+async function editLawyerProfile(req, res){
+  try {
+    const {
+      about,
+      fee,
+      membershipType,
+      officeAddress,
+      practiceAreas,
+      courtLevel
+    } = req.body;
+
+    const lawyer = await lawyermodel.findById(req.params.id);
+
+    if (!lawyer) {
+      return res.status(404).json({ status: false, message: "Lawyer not found" });
+    }
+
+    // Update profile fields
+    if (about !== undefined) lawyer.profile.about = about;
+    if (fee !== undefined) lawyer.profile.fee = fee;
+
+    // Update registration fields
+    if (membershipType !== undefined) lawyer.registration.membershipType = membershipType;
+    if (officeAddress !== undefined) lawyer.registration.officeAddress = officeAddress;
+    if (practiceAreas !== undefined) lawyer.registration.practiceAreas = practiceAreas;
+    if (courtLevel !== undefined) lawyer.registration.courtLevel = courtLevel;
+
+    await lawyer.save();
+
+    res.json({
+      status:true,
+      message: "Profile updated successfully",
+      data: lawyer
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+}; 
+
+
+module.exports={addlawyer,getlawyers,idlawyer,statuslawyer,deletelawyer,loginlawyer,IDlawyer,editLawyerProfile}

@@ -1,9 +1,10 @@
 let express=require("express");
 const multer = require("multer");
-let{addlawyer,getlawyers,idlawyer,statuslawyer,deletelawyer,loginlawyer,IDlawyer}=require("../Controllers/lawyer_cont.js")
+let{addlawyer,getlawyers,idlawyer,statuslawyer,deletelawyer,loginlawyer,IDlawyer }=require("../Controllers/lawyer_cont.js")
 let lawyerrouter=express.Router();
-
-
+const { editLawyerProfile } = require("../Controllers/lawyer_cont.js");
+console.log("editLawyerProfile type:", typeof editLawyerProfile);
+console.log("editLawyerProfile value:", editLawyerProfile);
 const memoryStorage = multer.memoryStorage();
 
 const upload = multer({
@@ -37,9 +38,9 @@ const lawyerUploadFields = upload.fields([
 lawyerrouter.post("/add", lawyerUploadFields, addlawyer);
 lawyerrouter.get("/get",getlawyers)
 lawyerrouter.get("/idlawyer/:id",idlawyer)
-lawyerrouter.patch("/idlawyer/:id/status",statuslawyer)
+lawyerrouter.post("/idlawyer/:id/status",statuslawyer)
 lawyerrouter.delete("/deletelawyer/:id",deletelawyer)
 lawyerrouter.post("/login",loginlawyer)
-lawyerrouter.get("/idlawyer/:id",IDlawyer)
+lawyerrouter.patch("/idlawyer/:id", editLawyerProfile); // Now this will work!
 
 module.exports={lawyerrouter}

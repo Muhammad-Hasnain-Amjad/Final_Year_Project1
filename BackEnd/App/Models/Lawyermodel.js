@@ -43,23 +43,22 @@ llb: {
 
   profile: {
     about: { type: String ,default:""},
-    availableDays: { type: String },
-    availableTime: { type: [{ start: String, end: String }] },
-    consultationFee: { type: Number }
+    fee: { type: Number }
   },
-  comments: [
-    {
-      userId: { type: mongoose.Schema.Types.ObjectId },
-      comment: { type: String },
-      rating: { type: Number },
-      createdAt: { type: Date, default: Date.now }
-    }
-  ],
+ 
   status: {
     isVerified: { type: String, default: "pending" },
     verificationDate: { type: Date },
     isActive: { type: Boolean, default: true }
-  }
+  },
+  days: [
+      
+        { type: String, required: true }, // e.g., "Monday"
+       
+    ],
+      slots: [
+        { type: String ,required: true }
+      ],
 });
 
 const lawyermodel =mongoose.model.Lawyer || mongoose.model("Lawyer", lawyerSchema);
