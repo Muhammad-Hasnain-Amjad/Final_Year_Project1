@@ -81,5 +81,5 @@ async function allusers(req,res){
  let allusers=await usermodel.find()
   return res.json({status:true,allusers})
 }
-
+ 
  module.exports={loginUser,registerUser,allusers}

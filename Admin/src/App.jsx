@@ -1,54 +1,61 @@
 import { useState } from 'react'
-import { createBrowserRouter,RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import AdminLayout from './Components/AdminLayout' // Import the new layout
 import Home from './Pages/Home'
 import All_Drs from './Pages/All_Drs'
 import All_Lawyers from './Pages/All_Lawyers'
-import './App.css'
 import Temp_lawyer from './Pages/Temp_lawyer'
-function App() {
-const route=createBrowserRouter([
- {
-   path:"/",
-    element:(
-      <div>
-        <Home />
-        
-      </div>
-    )
- },{
-  path:"/doctors_a",
-  element:(
-    <div>
-      <All_Drs />
-    </div>
-  )
- },
- {
-  path:"/lawyers_a",
-  element:(
-    <div>
-      <All_Lawyers />
-    </div>
-  )
- },
- {
-  path:"/lawyers_a/:id",
-  element:(
-    <div>
-      <Temp_lawyer />
-    </div>
-  )
- }
-  
-])
-  return(
-    <div>
-      <RouterProvider router={route}>
- 
-      </RouterProvider>
+import './App.css'
 
+function App() {
+  const route = createBrowserRouter([
+    {
+      path: "/",
+      element: (
+        <div>
+          <Home />
+        </div>
+      )
+    },
+    {
+      path: "/admin",
+      element: (
+        <AdminLayout>
+          <Home />
+        </AdminLayout>
+      )
+    },
+    {
+      path: "/doctors_a",
+      element: (
+        <AdminLayout>
+          <All_Drs />
+        </AdminLayout>
+      )
+    },
+    {
+      path: "/lawyers_a",
+      element: (
+        <AdminLayout>
+          <All_Lawyers />
+        </AdminLayout>
+      )
+    },
+    {
+      path: "/lawyers_a/:id",
+      element: (
+        <AdminLayout>
+          <Temp_lawyer />
+        </AdminLayout>
+      )
+    }
+  ])
+  
+  return (
+    <div>
+      <RouterProvider router={route} />
     </div>
-  );
+  )
 }
 
 export default App

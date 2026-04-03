@@ -5,7 +5,64 @@ import axios from "axios";
 import Loader from '../Components/Loader'
 import ShowModel from "../Components/ShowModel";
 import TempMessage from "../Components/TempMessage";
+import Select from "react-select";
 export default function Law_Reg() {
+  const practiceAreaOptions = [
+  { value: "Property / Land", label: "Property / Land" },
+  { value: "Family Issues", label: "Family Issues" },
+  { value: "Criminal & Court Case", label: "Criminal & Court Case" },
+  { value: "Cyber Crime", label: "Cyber Crime" },
+  { value: "Immigration", label: "Immigration" },
+  { value: "Employer Issues", label: "Employer Issues" },
+  { value: "Tax Issues", label: "Tax Issues" },
+  { value: "Torture", label: "Torture" },
+  { value: "Business / Industrial", label: "Business / Industrial" }
+];
+const customStyles = {
+  control: (base, state) => ({
+    ...base,
+    backgroundColor: "#000",
+    borderColor: state.isFocused ? "#facc15" : "#374151",
+    boxShadow: "none",
+    padding: "4px",
+    borderRadius: "0.5rem"
+  }),
+
+  menu: (base) => ({
+    ...base,
+    backgroundColor: "#000",
+    borderRadius: "0.5rem",
+    overflow: "hidden"
+  }),
+
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isFocused ? "#facc15" : "#000",
+    color: state.isFocused ? "#000" : "#fff",
+    cursor: "pointer"
+  }),
+
+  multiValue: (base) => ({
+    ...base,
+    backgroundColor: "#facc15",
+    borderRadius: "0.375rem"
+  }),
+
+  multiValueLabel: (base) => ({
+    ...base,
+    color: "#000",
+    fontWeight: "500"
+  }),
+
+  multiValueRemove: (base) => ({
+    ...base,
+    color: "#000",
+    ":hover": {
+      backgroundColor: "#eab308",
+      color: "#000"
+    }
+  })
+};
   const BaseURL = "http://localhost:5000/lawyer";
  const [loading, setLoading] = useState(false);
 
@@ -270,18 +327,20 @@ const[isOpen,setIsOpen]=useState(false)
               Practice Details
             </h2>
 
-            <label className="block mb-3">
-              <span className="text-sm">Practice Areas</span>
-              <input
-                type="text"
-                required
-                name="practiceAreas"
-                value={form.practiceAreas.join(", ")}
-                onChange={handleChange}
-                placeholder="Civil, Criminal, Family..."
-                className="w-full bg-white text-black px-4 py-2 rounded mt-1 focus:ring-2 focus:ring-yellow-400 outline-none"
-              />
-            </label>
+        <Select
+  isMulti
+  options={practiceAreaOptions}
+  styles={customStyles}
+  value={practiceAreaOptions.filter(opt =>
+    form.practiceAreas.includes(opt.value)
+  )}
+  onChange={(selected) =>
+    setForm({
+      ...form,
+      practiceAreas: selected.map(item => item.value)
+    })
+  }
+/>
 
             <label className="block mb-3">
               <span className="text-sm">Experience (Years)</span>

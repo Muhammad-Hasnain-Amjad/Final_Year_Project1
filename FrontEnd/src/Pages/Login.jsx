@@ -67,13 +67,18 @@ const [role, setRole] = useState("user");
 
       localStorage.setItem("token", token);
       localStorage.setItem("name", name);
-
+  console.log(token)
       setForm({ email: "", password: "" });
 
       toast.success("Login Successfully!");
 
       // Navigate based on role
-      navigate(`/${role}/${id}`);
+      if(role=="lawyer" || role=="doctor"){
+        navigate(`/${role}/${id}`);
+      }
+      else {
+        navigate("/")
+      }
 
     }
 

@@ -14,6 +14,16 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  gender:{
+    type: String,
+  },
+  DOB:{
+    type: Date,
+   
+  },
+  phone:{
+    type: String,
+  }
 
 });
 
