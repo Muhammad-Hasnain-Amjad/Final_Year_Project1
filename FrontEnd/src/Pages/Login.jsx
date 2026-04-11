@@ -10,12 +10,13 @@ export default function Login() {
 
   // Single state for email and password
   const [form, setForm] = useState({ email: "", password: "" });
-const [role, setRole] = useState("user");
+  const [role, setRole] = useState("user");
   // Password toggle
   const [showPassword, setShowPassword] = useState(false);
-
   // Alert state
   const [alert, setAlert] = useState({ show: false, type: "error", message: "" });
+  // Loading state
+  const [loading, setLoading] = useState(false);
 
   // Typing animation
   const [typedText, setTypedText] = useState("");
@@ -37,55 +38,111 @@ const [role, setRole] = useState("user");
   };
 
   // Handle submit
- const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setAlert({ show: false, type: "error", message: "" });
 
-  try {
+    try {
+      // Decide API based on role
+      let url = "";
 
-    // Decide API based on role
-    let url = "";
-
-    if (role === "lawyer") {
-      url = "http://localhost:5000/lawyer/login";
-    } 
-    else if (role === "doctor") {
-      url = "http://localhost:5000/doctor/login";
-    } 
-    else {
-      url = "http://localhost:5000/user/login";
-    }
-
-    const result = await axios.post(url, form);
-
-    if (!result.data.status) {
-      setAlert({ show: true, type: "error", message: result.data.message });
-    } else {
-
-      const token = result.data.usertoken;
-      const name = result.data.name;
-      const id = result.data.id;   // backend should return _id
-
-      localStorage.setItem("token", token);
-      localStorage.setItem("name", name);
-  console.log(token)
-      setForm({ email: "", password: "" });
-
-      toast.success("Login Successfully!");
-
-      // Navigate based on role
-      if(role=="lawyer" || role=="doctor"){
-        navigate(`/${role}/${id}`);
-      }
+      if (role === "lawyer") {
+        url = "http://localhost:5000/lawyer/login";
+      } 
+      else if (role === "doctor") {
+        url = "http://localhost:5000/doctor/login";
+      } 
       else {
-        navigate("/")
+        url = "http://localhost:5000/user/login";
       }
 
-    }
+      console.log("Sending to:", url);
+      console.log("Data:", { email: form.email, password: form.password });
 
-  } catch (e) {
-    setAlert({ show: true, type: "error", message: e.toString() });
-  }
-};
+      const result = await axios.post(url, {
+        email: form.email,
+        password: form.password
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log("Response:", result.data);
+
+      // Check if login was successful
+      if (result.data.status === true || result.data.status === "true") {
+        
+        const token = result.data.usertoken || result.data.token;
+        const name = result.data.name || result.data.fullName;
+        const id = result.data.id || result.data._id;
+
+        // Store tokens with role-specific names
+        if (role === "lawyer") {
+          localStorage.setItem("lawyertoken", token);
+          localStorage.setItem("lawyerName", name);
+          localStorage.setItem("lawyerId", id);
+          localStorage.setItem("userType", "lawyer");
+          console.log("Lawyer token stored:", token);
+        } 
+        else if (role === "doctor") {
+          localStorage.setItem("doctortoken", token);
+          localStorage.setItem("doctorName", name);
+          localStorage.setItem("doctorId", id);
+          localStorage.setItem("userType", "doctor");
+          console.log("Doctor token stored:", token);
+        } 
+        else {
+          localStorage.setItem("token", token);
+          localStorage.setItem("name", name);
+          localStorage.setItem("userId", id);
+          localStorage.setItem("userType", "user");
+          console.log("User token stored:", token);
+        }
+        
+        setForm({ email: "", password: "" });
+        toast.success(result.data.message || "Login Successfully!");
+
+        // Navigate based on role
+        if (role === "lawyer") {
+          navigate(`/lawyer/${id}`);
+        } else if (role === "doctor") {
+          navigate(`/doctor/${id}`);
+        } else {
+          navigate("/");
+        }
+
+      } else {
+        // Login failed
+        const errorMsg = result.data.message || "Invalid email or password";
+        setAlert({ show: true, type: "error", message: errorMsg });
+        toast.error(errorMsg);
+      }
+
+    } catch (error) {
+      console.error("Login error:", error);
+      console.error("Error response:", error.response?.data);
+      
+      let errorMessage = "Login failed. Please try again.";
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.status === 404) {
+        errorMessage = `${role.charAt(0).toUpperCase() + role.slice(1)} not found`;
+      } else if (error.response?.status === 400) {
+        errorMessage = "Invalid password";
+      } else if (error.code === "ERR_NETWORK") {
+        errorMessage = "Cannot connect to server. Please check if backend is running.";
+      }
+      
+      setAlert({ show: true, type: "error", message: errorMessage });
+      toast.error(errorMessage);
+      
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black px-6 py-10">
@@ -150,47 +207,6 @@ const [role, setRole] = useState("user");
                 focus:outline-none focus:ring-2 focus:ring-yellow-400 pr-12"
               placeholder="Enter your password"
             />
-            {/* Character */}
-          {/* Role Selection */}
-<div className="flex flex-col gap-2">
-  <label className="font-semibold text-yellow-700">
-    Login As
-  </label>
-
-  <div className="flex gap-6">
-    
-    <label className="flex items-center gap-2 cursor-pointer">
-      <input
-        type="radio"
-        name="role"
-        value="lawyer"
-        onChange={(e) => setRole(e.target.value)}
-      />
-      Lawyer
-    </label>
-
-    <label className="flex items-center gap-2 cursor-pointer">
-      <input
-        type="radio"
-        name="role"
-        value="doctor"
-        onChange={(e) => setRole(e.target.value)}
-      />
-      Doctor
-    </label>
-
-    <label className="flex items-center gap-2 cursor-pointer">
-      <input
-        type="radio"
-        name="role"
-        value="user"
-        onChange={(e) => setRole(e.target.value)}
-      />
-      User
-    </label>
-
-  </div>
-</div>
             <button
               type="button"
               onClick={() => setShowPassword((s) => !s)}
@@ -200,16 +216,62 @@ const [role, setRole] = useState("user");
             </button>
           </label>
 
+          {/* Role Selection */}
+          <div className="flex flex-col gap-2 mb-6">
+            <label className="font-semibold text-yellow-400">
+              Login As
+            </label>
+
+            <div className="flex gap-6">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="role"
+                  value="lawyer"
+                  checked={role === "lawyer"}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="accent-yellow-400"
+                />
+                <span className="text-gray-300">Lawyer</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="role"
+                  value="doctor"
+                  checked={role === "doctor"}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="accent-yellow-400"
+                />
+                <span className="text-gray-300">Doctor</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="role"
+                  value="user"
+                  checked={role === "user"}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="accent-yellow-400"
+                />
+                <span className="text-gray-300">User</span>
+              </label>
+            </div>
+          </div>
+
           {/* Submit */}
           <button
             type="submit"
-            className="w-full bg-yellow-400 text-black font-semibold py-3 rounded-md hover:bg-yellow-500 transition"
+            disabled={loading}
+            className="w-full bg-yellow-400 text-black font-semibold py-3 rounded-md hover:bg-yellow-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Log In
+            {loading ? "Logging in..." : "Log In"}
           </button>
 
           <p className="mt-6 text-center text-sm text-gray-300">
-            Don’t have an account?{" "}
+            Don't have an account?{" "}
             <button
               type="button"
               className="text-yellow-300 hover:underline"

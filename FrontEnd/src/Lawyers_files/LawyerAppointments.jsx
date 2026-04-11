@@ -18,45 +18,70 @@ const LawyerAppointments = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  // Get lawyer ID from localStorage (assuming you store lawyer info)
-  const lawyerId = JSON.parse(localStorage.getItem("user"))?._id;
+  // FIXED: Get lawyer ID from correct localStorage key
+  const lawyerId = localStorage.getItem("lawyerId") || localStorage.getItem("userId");
+  const token = localStorage.getItem("lawyertoken") || localStorage.getItem("token");
+
+  console.log("Lawyer ID:", lawyerId);
+  console.log("Token exists:", !!token);
 
   // Fetch appointments for this lawyer
-  const { data: appointments, isLoading, error } = useQuery({
+  const { data: appointments, isLoading, error, refetch } = useQuery({
     queryKey: ["lawyer-appointments", lawyerId],
     queryFn: async () => {
-      const token = localStorage.getItem("token");
-      const res = await axios.get(
-        `http://localhost:5000/appointments/lawyer/${lawyerId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-      return res.data.data;
+      if (!lawyerId) {
+        console.error("No lawyer ID found");
+        toast.error("Lawyer ID not found. Please login again.");
+        return [];
+      }
+      
+      if (!token) {
+        console.error("No token found");
+        toast.error("Please login again");
+        return [];
+      }
+      
+      console.log("Fetching appointments for lawyer:", lawyerId);
+      
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/appointments/lawyer/${lawyerId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+        
+        console.log("API Response:", response.data);
+        return response.data.data || [];
+      } catch (err) {
+        console.error("API Error:", err.response?.data || err.message);
+        toast.error(err.response?.data?.message || "Failed to fetch appointments");
+        return [];
+      }
     },
-    enabled: !!lawyerId
+    enabled: !!lawyerId && !!token
   });
 
   // Update appointment status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status, meetingLink }) => {
-      const token = localStorage.getItem("token");
-      const res = await axios.patch(
+      const response = await axios.patch(
         `http://localhost:5000/appointments/${id}/status`,
         { status, meetingLink },
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
-      return res.data.data;
+      return response.data.data;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries(["lawyer-appointments", lawyerId]);
-      toast.success("Appointment status updated!");
+      toast.success(`Appointment ${variables.status} successfully!`);
       setSelectedAppointment(null);
     },
-    onError: () => {
-      toast.error("Failed to update appointment status");
+    onError: (error) => {
+      console.error("Update error:", error);
+      toast.error(error.response?.data?.message || "Failed to update appointment status");
     }
   });
 
@@ -82,17 +107,17 @@ const LawyerAppointments = () => {
   // Status badge component
   const StatusBadge = ({ status }) => {
     const statusConfig = {
-      pending: { color: "yellow", icon: FaPending, text: "Pending" },
-      accepted: { color: "green", icon: FaCheckCircle, text: "Accepted" },
-      ongoing: { color: "blue", icon: FaVideo, text: "Ongoing" },
-      completed: { color: "gray", icon: FaCheckCircle, text: "Completed" },
-      cancelled: { color: "red", icon: FaTimesCircle, text: "Cancelled" }
+      pending: { color: "yellow", icon: FaPending, text: "Pending", bg: "bg-yellow-500/20", textColor: "text-yellow-400" },
+      accepted: { color: "green", icon: FaCheckCircle, text: "Accepted", bg: "bg-green-500/20", textColor: "text-green-400" },
+      ongoing: { color: "blue", icon: FaVideo, text: "Ongoing", bg: "bg-blue-500/20", textColor: "text-blue-400" },
+      completed: { color: "gray", icon: FaCheckCircle, text: "Completed", bg: "bg-gray-500/20", textColor: "text-gray-400" },
+      cancelled: { color: "red", icon: FaTimesCircle, text: "Cancelled", bg: "bg-red-500/20", textColor: "text-red-400" }
     };
     const config = statusConfig[status] || statusConfig.pending;
     const Icon = config.icon;
     
     return (
-      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-${config.color}-500/20 text-${config.color}-400`}>
+      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.textColor}`}>
         <Icon className="w-3 h-3" />
         {config.text}
       </span>
@@ -236,7 +261,7 @@ const LawyerAppointments = () => {
               className="w-full pl-10 pr-4 py-2 rounded-xl bg-gray-800 border border-gray-700 focus:border-yellow-400 outline-none text-white"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {["all", "pending", "accepted", "ongoing", "completed", "cancelled"].map((status) => (
               <button
                 key={status}
@@ -412,7 +437,7 @@ const LawyerAppointments = () => {
                         status: "accepted" 
                       })}
                       disabled={updateStatusMutation.isPending}
-                      className="flex-1 bg-green-500 text-white py-2 rounded-xl font-semibold hover:bg-green-600 transition flex items-center justify-center gap-2"
+                      className="flex-1 bg-green-500 text-white py-2 rounded-xl font-semibold hover:bg-green-600 transition flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       <FaCheckCircle /> Accept Appointment
                     </button>
@@ -422,7 +447,7 @@ const LawyerAppointments = () => {
                         status: "cancelled" 
                       })}
                       disabled={updateStatusMutation.isPending}
-                      className="flex-1 bg-red-500 text-white py-2 rounded-xl font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2"
+                      className="flex-1 bg-red-500 text-white py-2 rounded-xl font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       <FaTimesCircle /> Reject
                     </button>
@@ -436,7 +461,7 @@ const LawyerAppointments = () => {
                       status: "ongoing" 
                     })}
                     disabled={updateStatusMutation.isPending}
-                    className="flex-1 bg-blue-500 text-white py-2 rounded-xl font-semibold hover:bg-blue-600 transition flex items-center justify-center gap-2"
+                    className="flex-1 bg-blue-500 text-white py-2 rounded-xl font-semibold hover:bg-blue-600 transition flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     <FaVideo /> Start Session
                   </button>
@@ -449,7 +474,7 @@ const LawyerAppointments = () => {
                       status: "completed" 
                     })}
                     disabled={updateStatusMutation.isPending}
-                    className="flex-1 bg-yellow-500 text-black py-2 rounded-xl font-semibold hover:bg-yellow-600 transition flex items-center justify-center gap-2"
+                    className="flex-1 bg-yellow-500 text-black py-2 rounded-xl font-semibold hover:bg-yellow-600 transition flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     <FaCheckCircle /> Mark Complete
                   </button>
