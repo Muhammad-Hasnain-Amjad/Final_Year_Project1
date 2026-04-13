@@ -1,14 +1,22 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Add this import
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import NavBar from "../Components/NavBar";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiSearch, FiStar, FiBriefcase, FiChevronDown, FiCheckCircle, FiXCircle } from "react-icons/fi";
 
-// Fetch function for lawyers
-const fetchLawyers = async () => {
-  const res = await axios.get("http://localhost:5000/lawyer/get");
+// Fetch function for lawyers with filters
+const fetchLawyers = async (filters) => {
+  const params = new URLSearchParams();
+  if (filters.city) params.append("city", filters.city);
+  if (filters.caseType) params.append("caseType", filters.caseType);
+  
+  const url = params.toString() 
+    ? `http://localhost:5000/lawyer/filter?${params.toString()}`
+    : "http://localhost:5000/lawyer/get";
+    
+  const res = await axios.get(url);
   return res.data.data;
 };
 
@@ -41,7 +49,7 @@ const LawyerSkeleton = () => (
 
 // Individual Lawyer Card Component
 const LawyerCard = ({ lawyer }) => {
-  const navigate = useNavigate(); // Add navigate hook
+  const navigate = useNavigate();
 
   const fullName = lawyer.registration?.fullName || "Lawyer Name";
   const practiceAreas = lawyer.registration?.practiceAreas || ["General Practice"];
@@ -53,12 +61,10 @@ const LawyerCard = ({ lawyer }) => {
   const about = lawyer.profile?.about || "Experienced lawyer dedicated to providing excellent legal representation.";
   const fee = lawyer.profile?.fee || "Consultation fee upon request";
 
-  // Handle view profile navigation
   const handleViewProfile = () => {
     navigate(`/lawyers_a/${lawyer._id}`);
   };
 
-  // Handle book now navigation
   const handleBookNow = () => {
     navigate(`/lawyers_a/${lawyer._id}?book=true`);
   };
@@ -122,7 +128,6 @@ const LawyerCard = ({ lawyer }) => {
         </div>
 
         <div className="flex gap-3 mt-5">
-          {/* View Profile Button */}
           <button 
             onClick={handleViewProfile}
             className="flex-1 py-2 text-sm font-medium text-yellow-700 border border-yellow-300 rounded-xl hover:bg-yellow-50 transition-colors duration-200"
@@ -130,7 +135,6 @@ const LawyerCard = ({ lawyer }) => {
             View Profile
           </button>
           
-          {/* Book Now Button */}
           <button 
             onClick={handleBookNow}
             className="flex-1 py-2 text-sm font-medium text-white bg-yellow-500 rounded-xl hover:bg-yellow-600 transition-colors duration-200 shadow-sm"
@@ -185,7 +189,7 @@ const SearchPanel = ({ onClose, onSearch, isOpen }) => {
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder="Enter city name"
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 outline-none transition-all"
+                  className="w-full text-black px-4 py-2.5 rounded-xl border border-gray-300 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 outline-none transition-all"
                 />
               </div>
 
@@ -194,11 +198,13 @@ const SearchPanel = ({ onClose, onSearch, isOpen }) => {
                 <select
                   value={caseType}
                   onChange={(e) => setCaseType(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 outline-none transition-all bg-white"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 outline-none transition-all bg-white text-gray-900"
                 >
-                  <option value="">Select case type</option>
+                  <option value="" className="text-gray-600">Select case type</option>
                   {caseOptions.map((option) => (
-                    <option key={option} value={option}>{option}</option>
+                    <option key={option} value={option} className="text-gray-900">
+                      {option}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -231,33 +237,20 @@ const Lawyers = () => {
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
   const [filters, setFilters] = useState({ city: "", caseType: "" });
 
-  const { data: lawyers, isLoading, error } = useQuery({
-    queryKey: ["lawyers"],
-    queryFn: fetchLawyers,
-  });
-
-  const verifiedLawyers = lawyers?.filter(lawyer => lawyer.status?.isVerified === "verified") || [];
-  
-  const filteredLawyers = verifiedLawyers.filter(lawyer => {
-    if (filters.city) {
-      const officeAddress = lawyer.registration?.officeAddress || "";
-      if (!officeAddress.toLowerCase().includes(filters.city.toLowerCase())) {
-        return false;
-      }
-    }
-    
-    if (filters.caseType) {
-      const practiceAreas = lawyer.registration?.practiceAreas || [];
-      if (!practiceAreas.some(area => area.toLowerCase().includes(filters.caseType.toLowerCase()))) {
-        return false;
-      }
-    }
-    
-    return true;
+  // Fetch lawyers with filters
+  const { data: lawyers, isLoading, error, refetch } = useQuery({
+    queryKey: ["lawyers", filters],
+    queryFn: () => fetchLawyers(filters),
+    enabled: true,
   });
 
   const handleSearch = (searchFilters) => {
     setFilters(searchFilters);
+    // Refetch will happen automatically because queryKey changed
+  };
+
+  const handleClearFilters = () => {
+    setFilters({ city: "", caseType: "" });
   };
 
   return (
@@ -325,7 +318,7 @@ const Lawyers = () => {
         {/* Results Count */}
         <div className="mb-6">
           <h2 className="text-xl font-semibold text-gray-800">
-            Showing <span className="text-yellow-600">{filteredLawyers.length}</span> results
+            Showing <span className="text-yellow-600">{lawyers?.length || 0}</span> results
           </h2>
           <p className="text-sm text-gray-500">Verified legal professionals</p>
         </div>
@@ -351,7 +344,7 @@ const Lawyers = () => {
               </span>
             )}
             <button
-              onClick={() => setFilters({ city: "", caseType: "" })}
+              onClick={handleClearFilters}
               className="text-sm text-gray-400 hover:text-gray-600 underline"
             >
               Clear all
@@ -370,13 +363,13 @@ const Lawyers = () => {
           <div className="text-center py-12 bg-red-50 rounded-2xl">
             <p className="text-red-600">Failed to load lawyers. Please try again later.</p>
           </div>
-        ) : filteredLawyers.length === 0 ? (
+        ) : lawyers?.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 rounded-2xl">
             <FiSearch className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500">No verified lawyers found matching your criteria.</p>
             {(filters.city || filters.caseType) && (
               <button
-                onClick={() => setFilters({ city: "", caseType: "" })}
+                onClick={handleClearFilters}
                 className="mt-3 text-yellow-600 hover:text-yellow-700 font-medium"
               >
                 Clear all filters
@@ -389,7 +382,7 @@ const Lawyers = () => {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             <AnimatePresence>
-              {filteredLawyers.map((lawyer) => (
+              {lawyers.map((lawyer) => (
                 <LawyerCard key={lawyer._id} lawyer={lawyer} />
               ))}
             </AnimatePresence>

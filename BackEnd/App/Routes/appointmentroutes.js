@@ -40,6 +40,7 @@ appointmentRoutes.post("/", authMiddleware, async (req, res) => {
       time,
       status: { $in: ["pending", "accepted", "ongoing"] }
     });
+
     
     if (userExistingAppointment) {
       return res.status(400).json({
@@ -63,7 +64,18 @@ appointmentRoutes.post("/", authMiddleware, async (req, res) => {
         message: `This time slot is already booked. Please choose another time.`
       });
     }
-    
+     // Check if the same user already has an appointment with this lawyer
+    const userExistingLawyer = await Appointment.findOne({
+      userId,
+      lawyerId,
+      status: { $in: ["pending", "accepted", "ongoing"] }
+    });
+     if (userExistingLawyer) {
+      return res.status(400).json({
+        success: false,
+        message: "You already have an appointment with this lawyer"
+      });
+    }
     // Optional: Check if lawyer has reached maximum appointments per day
     const appointmentsCount = await Appointment.countDocuments({
       lawyerId,

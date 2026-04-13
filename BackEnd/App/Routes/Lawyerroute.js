@@ -1,6 +1,6 @@
 let express=require("express");
 const multer = require("multer");
-let{addlawyer,getlawyers,idlawyer,statuslawyer,deletelawyer,loginlawyer,IDlawyer }=require("../Controllers/lawyer_cont.js")
+let{addlawyer,getlawyers,idlawyer,statuslawyer,deletelawyer,loginlawyer,IDlawyer,filterlawyers }=require("../Controllers/lawyer_cont.js")
 let lawyerrouter=express.Router();
 const { editLawyerProfile } = require("../Controllers/lawyer_cont.js");
 // console.log("editLawyerProfile type:", typeof editLawyerProfile);
@@ -42,5 +42,5 @@ lawyerrouter.patch("/idlawyer/:id/status",statuslawyer)
 lawyerrouter.delete("/deletelawyer/:id",deletelawyer)//admin side to delete lawyer
 lawyerrouter.post("/login",loginlawyer)// for logging in 
 lawyerrouter.patch("/idlawyer/:id", editLawyerProfile); // for Editing Lawyer profile
-
+lawyerrouter.get("/filter", filterlawyers); // for filtering lawyers based on criteria
 module.exports={lawyerrouter}

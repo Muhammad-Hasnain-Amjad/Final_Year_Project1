@@ -336,8 +336,47 @@ async function loginlawyer(req, res) {
 
   }
 }
-
-
+ async function filterlawyers(req, res) {
+  try {
+    const { city, caseType } = req.query;
+    
+    let query = {};
+    
+    // Add status filter for verified lawyers only
+    query["status.isVerified"] = "verified";
+    
+    // Add case type filter if provided
+    if (caseType && caseType.trim() !== "") {
+      query["registration.practiceAreas"] = { 
+        $in: [new RegExp(caseType, "i")] 
+      };
+    }
+    
+    // Add city filter if provided (search in officeAddress)
+    if (city && city.trim() !== "") {
+      query["registration.officeAddress"] = { 
+        $regex: city, 
+        $options: "i" 
+      };
+    }
+    
+    const lawyers = await lawyermodel.find(query);
+    
+    res.status(200).json({
+      success: true,
+      data: lawyers,
+      count: lawyers.length
+    });
+    
+  } catch (error) {
+    console.error("Error filtering lawyers:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+}
+ 
 // PATCH update lawyer
 
 
@@ -384,4 +423,4 @@ async function editLawyerProfile(req, res){
 }; 
 
 
-module.exports={addlawyer,getlawyers,idlawyer,statuslawyer,deletelawyer,loginlawyer,IDlawyer,editLawyerProfile}
+module.exports={addlawyer,getlawyers,idlawyer,statuslawyer,deletelawyer,loginlawyer,IDlawyer,editLawyerProfile,filterlawyers}

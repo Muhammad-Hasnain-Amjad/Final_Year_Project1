@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -8,9 +8,10 @@ import {
   FaCheckCircle, FaPhone, FaEnvelope, FaAward, FaGavel,
   FaCalendarAlt, FaClock, FaComment, FaQuoteLeft,
   FaUserCircle, FaRegClock, FaShieldAlt, FaCertificate,
-  FaLocationArrow
+  FaLocationArrow, FaEdit, FaTrash
 } from "react-icons/fa";
 import { FiMessageSquare } from "react-icons/fi";
+import Swal from 'sweetalert2';
 import AppointmentBooking from "../Components/AppointmentBooking";
 import { toast } from "react-toastify";
 
@@ -21,6 +22,26 @@ const LawyerProfile = () => {
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [newComment, setNewComment] = useState({ rating: 5, comment: "" });
+  
+  // Edit/Delete states
+  const [editingComment, setEditingComment] = useState(null);
+  const [editData, setEditData] = useState({ rating: 5, comment: "" });
+  
+  // Get current user ID from token
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  // Extract userId from token
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setCurrentUserId(payload.id || payload.userId);
+      } catch (error) {
+        console.error("Error parsing token:", error);
+      }
+    }
+  }, []);
 
   // Fetch lawyer details
   const { data: lawyer, isLoading, refetch } = useQuery({
@@ -80,6 +101,99 @@ const LawyerProfile = () => {
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to submit review");
+    }
+  };
+
+  // Edit comment
+  const handleEditComment = (comment) => {
+    setEditingComment(comment);
+    setEditData({ rating: comment.rating, comment: comment.comment });
+  };
+
+  // Update comment
+  const handleUpdateComment = async () => {
+    if (!editData.comment.trim()) {
+      toast.error("Please write a comment");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login to edit review");
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/comments/${editingComment._id}`,
+        {
+          rating: editData.rating,
+          comment: editData.comment
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Review updated successfully!");
+        setEditingComment(null);
+        refetchComments();
+        refetch();
+      }
+    } catch (error) {
+      console.error("Update error:", error.response?.data);
+      toast.error(error.response?.data?.message || "Failed to update review");
+    }
+  };
+
+  // Delete comment with SweetAlert2 confirmation
+  const handleDeleteComment = async (commentId) => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel',
+      background: '#1a1a1a',
+      color: '#fff',
+      iconColor: '#fbbf24'
+    });
+
+    if (result.isConfirmed) {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Please login to delete review");
+        return;
+      }
+
+      try {
+        const response = await axios.delete(
+          `http://localhost:5000/comments/${commentId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        if (response.data.success) {
+          await Swal.fire({
+            title: 'Deleted!',
+            text: 'Your review has been deleted.',
+            icon: 'success',
+            confirmButtonColor: '#fbbf24',
+            background: '#1a1a1a',
+            color: '#fff'
+          });
+          refetchComments();
+          refetch();
+        }
+      } catch (error) {
+        console.error("Delete error:", error.response?.data);
+        toast.error(error.response?.data?.message || "Failed to delete review");
+      }
     }
   };
 
@@ -234,10 +348,10 @@ const LawyerProfile = () => {
                 </div>
               </div>
 
-              {/* Fee */}
+              {/* Fee - Changed to PKR */}
               <div className="mt-6 p-4 bg-gradient-to-r from-yellow-500/10 to-transparent rounded-xl border-l-4 border-yellow-400">
-                <p className="text-gray-400 text-xs">File Fee</p>
-                <p className="text-white text-2xl font-bold">${profile?.fee || "Negotiable"}<span className="text-sm text-gray-400">/session</span></p>
+                <p className="text-gray-400 text-xs">Consultation Fee</p>
+                <p className="text-white text-2xl font-bold">₨ {profile?.fee || "Negotiable"}<span className="text-sm text-gray-400">/session</span></p>
               </div>
             </div>
           </motion.div>
@@ -292,7 +406,7 @@ const LawyerProfile = () => {
               </div>
             </motion.div>
 
-            {/* Comments Section */}
+            {/* Comments Section with Edit/Delete Icons */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -347,51 +461,79 @@ const LawyerProfile = () => {
                 </motion.div>
               ) : (
                 <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-                  {comments?.map((comment, idx) => (
-                    <motion.div
-                      key={comment._id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="bg-black/30 rounded-xl p-4 border border-white/10 hover:border-yellow-400/30 transition-all"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0">
-                          {comment.userId?.profilePic?.url ? (
-                            <img 
-                              src={comment.userId.profilePic.url}
-                              alt={comment.userId?.fullName}
-                              className="w-10 h-10 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center">
-                              <FaUserCircle className="w-8 h-8 text-gray-500" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between flex-wrap gap-2">
-                            <div>
-                              <p className="font-semibold text-white">{comment.userId?.fullName || "Anonymous"}</p>
-                              <div className="flex items-center gap-1 mt-1">
-                                {[...Array(5)].map((_, i) => (
-                                  <FaStar key={i} className={`w-3 h-3 ${i < comment.rating ? 'text-yellow-400' : 'text-gray-600'}`} />
-                                ))}
+                  {comments?.map((comment, idx) => {
+                    // Check if current user owns this comment
+                    const commentUserId = comment.userId?._id || comment.userId;
+                    const isOwner = currentUserId && commentUserId?.toString() === currentUserId?.toString();
+                    
+                    return (
+                      <motion.div
+                        key={comment._id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="bg-black/30 rounded-xl p-4 border border-white/10 hover:border-yellow-400/30 transition-all"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0">
+                            {comment.userId?.profilePic?.url ? (
+                              <img 
+                                src={comment.userId.profilePic.url}
+                                alt={comment.userId?.name}
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center">
+                                <FaUserCircle className="w-8 h-8 text-gray-500" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <div>
+                                <p className="font-semibold text-white">{comment.userId?.name || "Anonymous"}</p>
+                                <div className="flex items-center gap-1 mt-1">
+                                  {[...Array(5)].map((_, i) => (
+                                    <FaStar key={i} className={`w-3 h-3 ${i < comment.rating ? 'text-yellow-400' : 'text-gray-600'}`} />
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 text-xs text-gray-500">
+                                  <FaRegClock className="w-3 h-3" />
+                                  {new Date(comment.createdAt).toLocaleDateString()}
+                                </div>
+                                
+                                {/* Edit/Delete buttons with icons - only visible to comment owner */}
+                                {isOwner && (
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleEditComment(comment)}
+                                      className="p-1.5 text-blue-400 hover:text-blue-300 transition rounded-lg hover:bg-blue-400/10"
+                                      title="Edit review"
+                                    >
+                                      <FaEdit className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteComment(comment._id)}
+                                      className="p-1.5 text-red-400 hover:text-red-300 transition rounded-lg hover:bg-red-400/10"
+                                      title="Delete review"
+                                    >
+                                      <FaTrash className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                              <FaRegClock className="w-3 h-3" />
-                              {new Date(comment.createdAt).toLocaleDateString()}
+                            <div className="mt-2 relative">
+                              <FaQuoteLeft className="w-3 h-3 text-yellow-400/30 absolute -left-1 -top-1" />
+                              <p className="text-gray-400 text-sm pl-4">{comment.comment}</p>
                             </div>
                           </div>
-                          <div className="mt-2 relative">
-                            <FaQuoteLeft className="w-3 h-3 text-yellow-400/30 absolute -left-1 -top-1" />
-                            <p className="text-gray-400 text-sm pl-4">{comment.comment}</p>
-                          </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
                 </div>
               )}
             </motion.div>
@@ -439,7 +581,7 @@ const LawyerProfile = () => {
         )}
       </AnimatePresence>
 
-      {/* Location Modal with Google Maps Iframe */}
+      {/* Location Modal */}
       <AnimatePresence>
         {showLocationModal && (
           <motion.div
@@ -475,7 +617,6 @@ const LawyerProfile = () => {
                 </p>
               </div>
               
-              {/* Google Maps Iframe */}
               <div className="relative w-full h-96 rounded-xl overflow-hidden border border-gray-700">
                 <iframe
                   title="Office Location"
@@ -539,7 +680,6 @@ const LawyerProfile = () => {
                 </button>
               </div>
               
-              {/* Rating Stars */}
               <div className="mb-4">
                 <label className="block text-gray-400 text-sm mb-2">Your Rating</label>
                 <div className="flex gap-2">
@@ -556,7 +696,6 @@ const LawyerProfile = () => {
                 </div>
               </div>
               
-              {/* Comment Text */}
               <div className="mb-6">
                 <label className="block text-gray-400 text-sm mb-2">Your Review</label>
                 <textarea
@@ -580,6 +719,81 @@ const LawyerProfile = () => {
                   className="flex-1 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black py-2 rounded-xl font-semibold hover:scale-105 transition-all"
                 >
                   Submit Review
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Comment Modal */}
+      <AnimatePresence>
+        {editingComment && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+            onClick={() => setEditingComment(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-gradient-to-br from-gray-900 to-black rounded-2xl border border-gray-700 p-6 max-w-md w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-yellow-400 flex items-center gap-2">
+                  <FaStar /> Edit Your Review
+                </h2>
+                <button
+                  onClick={() => setEditingComment(null)}
+                  className="text-gray-400 hover:text-white text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-gray-400 text-sm mb-2">Your Rating</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setEditData({ ...editData, rating: star })}
+                      className="focus:outline-none transition-transform hover:scale-110"
+                    >
+                      <FaStar className={`w-8 h-8 ${star <= editData.rating ? 'text-yellow-400' : 'text-gray-600'}`} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-gray-400 text-sm mb-2">Your Review</label>
+                <textarea
+                  rows={4}
+                  value={editData.comment}
+                  onChange={(e) => setEditData({ ...editData, comment: e.target.value })}
+                  className="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 focus:border-yellow-500 outline-none text-white resize-none"
+                  placeholder="Share your experience with this lawyer..."
+                />
+              </div>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setEditingComment(null)}
+                  className="flex-1 px-4 py-2 rounded-xl border border-gray-700 text-gray-400 hover:bg-gray-800 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdateComment}
+                  className="flex-1 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black py-2 rounded-xl font-semibold hover:scale-105 transition-all"
+                >
+                  Update Review
                 </button>
               </div>
             </motion.div>

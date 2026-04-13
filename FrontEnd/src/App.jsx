@@ -10,6 +10,7 @@ import Login from './Pages/Login';
 import MyProfile from './Pages/MyProfile';
 import  MyAppointments from './Pages/MyAppointments' 
 import Dr_Reg from './Pages/Dr_Reg';
+import NotFound from './Pages/NotFound';
 import Law_Reg from './Pages/Law_Reg';
 import Signup from './Pages/Signup';
 import View_Lawyer_Profile from  './Lawyers_files/View_Lawyer_Profile'
@@ -124,6 +125,10 @@ const route=createBrowserRouter([
           <LawyerAppointments />
         </div>
       )
+    },
+    {
+      path: "*",
+      element: <NotFound />
     }
 ])
 

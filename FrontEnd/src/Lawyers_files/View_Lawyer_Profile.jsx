@@ -416,7 +416,7 @@ const customStyles = {
               </h2>
             </div>
             <div className="p-6">
-              <LawyerComments />
+              <LawyerComments lawyerId={lawyer?._id} />
             </div>
           </motion.div>
         </div>

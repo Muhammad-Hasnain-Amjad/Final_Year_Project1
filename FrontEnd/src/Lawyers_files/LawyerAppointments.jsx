@@ -142,13 +142,13 @@ const LawyerAppointments = () => {
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-gradient-to-br from-yellow-400/20 to-yellow-500/10 rounded-full flex items-center justify-center">
               {user?.profilePic?.url ? (
-                <img src={user.profilePic.url} alt={user.fullName} className="w-12 h-12 rounded-full object-cover" />
+                <img src={user.profilePic.url} alt={user.name} className="w-12 h-12 rounded-full object-cover" />
               ) : (
                 <FaUser className="w-6 h-6 text-yellow-400" />
               )}
             </div>
             <div>
-              <h3 className="font-semibold text-white">{user?.fullName || "Anonymous"}</h3>
+              <h3 className="font-semibold text-white">{user?.name || "Anonymous"}</h3>
               <div className="flex items-center gap-2 mt-1">
                 <FaCalendarAlt className="w-3 h-3 text-yellow-400" />
                 <span className="text-xs text-gray-400">{date.toLocaleDateString()}</span>
@@ -376,11 +376,11 @@ const LawyerAppointments = () => {
                   )}
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">{selectedAppointment.userId?.fullName || "Anonymous"}</h3>
+                  <h3 className="text-xl font-bold text-white">{selectedAppointment.userId?.name || "Anonymous"}</h3>
                   <div className="flex items-center gap-3 mt-1">
                     <div className="flex items-center gap-1 text-gray-400 text-sm">
                       <FaPhone className="w-3 h-3" />
-                      {selectedAppointment.userId?.phoneNumber || "N/A"}
+                      {selectedAppointment.userId?.phone || "N/A"}
                     </div>
                     <div className="flex items-center gap-1 text-gray-400 text-sm">
                       <FaEnvelope className="w-3 h-3" />
@@ -482,7 +482,7 @@ const LawyerAppointments = () => {
                 
                 <button
                   onClick={() => {
-                    window.location.href = `tel:${selectedAppointment.userId?.phoneNumber}`;
+                    window.location.href = `tel:${selectedAppointment.userId?.phone}`;
                   }}
                   className="flex-1 bg-gray-700 text-white py-2 rounded-xl font-semibold hover:bg-gray-600 transition flex items-center justify-center gap-2"
                 >
