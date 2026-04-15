@@ -36,7 +36,7 @@ async function loginUser(req, res) {
 //Generate name
   
     // Send success
-    res.json({ status: true, usertoken:usertoken,name:user.name });
+    res.json({ status: true, usertoken:usertoken,name:user.name ,id:user._id });
   } catch (e) {
     console.error(e);
     res.json({ status: false, message: e.toString() });

@@ -83,7 +83,7 @@ export default function Login() {
           localStorage.setItem("lawyertoken", token);
           localStorage.setItem("lawyerName", name);
           localStorage.setItem("lawyerId", id);
-          localStorage.setItem("userType", "lawyer");
+          localStorage.setItem("userType", "Lawyer");
           console.log("Lawyer token stored:", token);
         } 
         else if (role === "doctor") {
@@ -97,7 +97,7 @@ export default function Login() {
           localStorage.setItem("token", token);
           localStorage.setItem("name", name);
           localStorage.setItem("userId", id);
-          localStorage.setItem("userType", "user");
+          localStorage.setItem("userType", "User");
           console.log("User token stored:", token);
         }
         

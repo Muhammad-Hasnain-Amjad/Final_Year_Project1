@@ -4,8 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import NavBar from "../Components/NavBar";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiSearch, FiStar, FiBriefcase, FiChevronDown, FiCheckCircle, FiXCircle } from "react-icons/fi";
-
+import { FiSearch, FiStar, FiBriefcase, FiChevronDown, FiCheckCircle, FiXCircle,FiMessageCircle } from "react-icons/fi";
 // Fetch function for lawyers with filters
 const fetchLawyers = async (filters) => {
   const params = new URLSearchParams();
@@ -65,9 +64,7 @@ const LawyerCard = ({ lawyer }) => {
     navigate(`/lawyers_a/${lawyer._id}`);
   };
 
-  const handleBookNow = () => {
-    navigate(`/lawyers_a/${lawyer._id}?book=true`);
-  };
+ 
 
   return (
     <motion.div
@@ -135,12 +132,20 @@ const LawyerCard = ({ lawyer }) => {
             View Profile
           </button>
           
-          <button 
-            onClick={handleBookNow}
-            className="flex-1 py-2 text-sm font-medium text-white bg-yellow-500 rounded-xl hover:bg-yellow-600 transition-colors duration-200 shadow-sm"
-          >
-            Book Now
-          </button>
+      
+<button 
+  onClick={() => navigate("/chats", { state: { 
+    otherParticipant: {
+      _id: lawyer._id,
+      name: fullName,
+      profilePic: profilePic,
+      type: "Lawyer"
+    }
+  } })}
+  className="flex-1 py-2 text-sm font-medium text-yellow-700 border border-yellow-300 rounded-xl hover:bg-yellow-50 transition-colors duration-200"
+>
+  <FiMessageCircle className="inline mr-1" /> Message
+</button>
         </div>
       </div>
     </motion.div>
