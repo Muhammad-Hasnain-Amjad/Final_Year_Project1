@@ -280,14 +280,15 @@ async function loginlawyer(req, res) {
     accountid = lawyer._id;
 
     // TOKEN GENERATION
+    
     const token = jwt.sign(
       {
         id: lawyer._id,
-        role: "lawyer",
+        type: "Lawyer",
         email: lawyer.registration.email,
       },
-     process.env.lawyer_key,   // put this in .env in production
-      { expiresIn: "7d" }
+     process.env.JWT_SECRET,   // put this in .env in production
+      { expiresIn: "1d" }
     );
 
     return res.json({

@@ -53,7 +53,7 @@ const initializeSocket = (io) => {
       }
 
       // ✅ USE YOUR jwtkey (AS YOU WANT)
-      const decoded = jwt.verify(token, process.env.jwtkey);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       socket.userId = decoded.id || decoded._id;
       socket.userType = decoded.type || decoded.role || "User";

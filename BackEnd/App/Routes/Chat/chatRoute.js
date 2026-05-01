@@ -8,8 +8,7 @@ const {
 const authMiddleware = require('../../../MiddleWare/JWTToken.js');
 const chatRouter = express.Router();
 
-// ✅ REMOVE this line - it's causing the error
-// console.log(getType(getOrCreateChat));
+
 
 // Create or get a chat
 chatRouter.post("/create", authMiddleware, getOrCreateChat);

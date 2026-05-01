@@ -4,9 +4,16 @@ const usermodel=require("../Models/usermodel.js")
 const validator=require('validator')
 //Token
 function Genusertoken(id){
-    const secret = process.env.jwtkey;
+    const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error("JWT secret key is missing!");
-    return jwt.sign({id},secret)
+    return jwt.sign(
+        { 
+            id: id,
+            type: "User"  // ← ADD THIS!
+        }, 
+        secret,
+        { expiresIn: '7d' }
+    );
 }
 
 //login user

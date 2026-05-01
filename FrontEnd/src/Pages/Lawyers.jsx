@@ -4,7 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import NavBar from "../Components/NavBar";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiSearch, FiStar, FiBriefcase, FiChevronDown, FiCheckCircle, FiXCircle,FiMessageCircle } from "react-icons/fi";
+import { 
+  FiSearch, FiStar, FiBriefcase, FiChevronDown, 
+  FiCheckCircle, FiXCircle, FiMessageCircle 
+} from "react-icons/fi";
+import { toast } from "react-toastify";
+
 // Fetch function for lawyers with filters
 const fetchLawyers = async (filters) => {
   const params = new URLSearchParams();
@@ -49,6 +54,7 @@ const LawyerSkeleton = () => (
 // Individual Lawyer Card Component
 const LawyerCard = ({ lawyer }) => {
   const navigate = useNavigate();
+  const [chatLoading, setChatLoading] = useState(false);
 
   const fullName = lawyer.registration?.fullName || "Lawyer Name";
   const practiceAreas = lawyer.registration?.practiceAreas || ["General Practice"];
@@ -64,7 +70,59 @@ const LawyerCard = ({ lawyer }) => {
     navigate(`/lawyers_a/${lawyer._id}`);
   };
 
- 
+  const handleStartChat = async () => {
+    setChatLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      
+      if (!token) {
+        toast.error("Please login first to start chatting");
+        navigate("/login");
+        return;
+      }
+
+      console.log("Starting chat with lawyer:", lawyer._id);
+
+      const response = await axios.post(
+        "http://localhost:5000/chats/create",
+        {
+          otherUserId: lawyer._id,
+          otherUserType: "Lawyer"
+        },
+        {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      console.log("Chat response:", response.data);
+
+      if (response.data.success) {
+        const { chat, otherParticipant } = response.data.data;
+        
+        // Navigate to the specific chat window
+        navigate(`/chats/${chat._id}`, {
+          state: { 
+            otherParticipant: {
+              ...otherParticipant,
+              name: fullName,
+              profilePic: profilePic,
+              type: "Lawyer"
+            }
+          }
+        });
+      } else {
+        toast.error(response.data.message || "Failed to start chat");
+      }
+    } catch (error) {
+      console.error("Chat error:", error);
+      toast.error(error.response?.data?.message || "Failed to start chat. Please try again.");
+    } finally {
+      setChatLoading(false);
+    }
+  };
 
   return (
     <motion.div
@@ -132,20 +190,19 @@ const LawyerCard = ({ lawyer }) => {
             View Profile
           </button>
           
-      
-<button 
-  onClick={() => navigate("/chats", { state: { 
-    otherParticipant: {
-      _id: lawyer._id,
-      name: fullName,
-      profilePic: profilePic,
-      type: "Lawyer"
-    }
-  } })}
-  className="flex-1 py-2 text-sm font-medium text-yellow-700 border border-yellow-300 rounded-xl hover:bg-yellow-50 transition-colors duration-200"
->
-  <FiMessageCircle className="inline mr-1" /> Message
-</button>
+          <button 
+            onClick={handleStartChat}
+            disabled={chatLoading}
+            className="flex-1 py-2 text-sm font-medium text-yellow-700 border border-yellow-300 rounded-xl hover:bg-yellow-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {chatLoading ? (
+              <div className="w-4 h-4 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            ) : (
+              <>
+                <FiMessageCircle className="inline mr-1" /> Message
+              </>
+            )}
+          </button>
         </div>
       </div>
     </motion.div>
@@ -239,6 +296,7 @@ const SearchPanel = ({ onClose, onSearch, isOpen }) => {
 
 // Main Component
 const Lawyers = () => {
+  const navigate = useNavigate();
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
   const [filters, setFilters] = useState({ city: "", caseType: "" });
 
@@ -251,7 +309,6 @@ const Lawyers = () => {
 
   const handleSearch = (searchFilters) => {
     setFilters(searchFilters);
-    // Refetch will happen automatically because queryKey changed
   };
 
   const handleClearFilters = () => {
@@ -261,6 +318,7 @@ const Lawyers = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
+      
       {/* Hero Section with Yellow Theme */}
       <div className="bg-black text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">

@@ -72,46 +72,95 @@ export default function Login() {
       console.log("Response:", result.data);
 
       // Check if login was successful
-      if (result.data.status === true || result.data.status === "true") {
+      if (result.data.status === true || result.data.status === "true" || result.data.success === true) {
         
-        const token = result.data.usertoken || result.data.token;
-        const name = result.data.name || result.data.fullName;
-        const id = result.data.id || result.data._id;
-
-        // Store tokens with role-specific names
+        // ✅ FIX: Get token from correct response field
+        const token = result.data.usertoken || result.data.token || result.data.accessToken;
+        
+        // ✅ FIX: Get user data properly
+        let userId = "";
+        let userName = "";
+        
         if (role === "lawyer") {
-          localStorage.setItem("lawyertoken", token);
-          localStorage.setItem("lawyerName", name);
-          localStorage.setItem("lawyerId", id);
+          // Lawyer response structure
+          userId = result.data.id || result.data._id || result.data.lawyer?._id;
+          userName = result.data.name || result.data.fullName || result.data.registration?.fullName;
+          
+          // ✅ CLEAR ALL OLD DATA FIRST
+          localStorage.clear();
+          
+          // ✅ STORE WITH CONSISTENT KEYS
+          localStorage.setItem("token", token);
+          localStorage.setItem("userId", userId);
           localStorage.setItem("userType", "Lawyer");
-          console.log("Lawyer token stored:", token);
+          localStorage.setItem("userName", userName);
+          localStorage.setItem("userEmail", form.email);
+          
+          // Also keep lawyer-specific keys for backward compatibility
+          localStorage.setItem("lawyertoken", token);
+          localStorage.setItem("lawyerId", userId);
+          localStorage.setItem("lawyerName", userName);
+          
+          console.log("✅ Lawyer data stored:", {
+            userId: userId,
+            userType: "Lawyer",
+            token: token?.substring(0, 50) + "..."
+          });
         } 
         else if (role === "doctor") {
-          localStorage.setItem("doctortoken", token);
-          localStorage.setItem("doctorName", name);
-          localStorage.setItem("doctorId", id);
+          userId = result.data.id || result.data._id;
+          userName = result.data.name || result.data.fullName;
+          
+          localStorage.clear();
+          localStorage.setItem("token", token);
+          localStorage.setItem("userId", userId);
           localStorage.setItem("userType", "doctor");
-          console.log("Doctor token stored:", token);
+          localStorage.setItem("userName", userName);
+          localStorage.setItem("userEmail", form.email);
+          localStorage.setItem("doctortoken", token);
+          localStorage.setItem("doctorId", userId);
+          localStorage.setItem("doctorName", userName);
+          
+          console.log("✅ Doctor data stored");
         } 
         else {
+          // User login
+          userId = result.data.id || result.data._id;
+          userName = result.data.name || result.data.fullName;
+          
+          localStorage.clear();
           localStorage.setItem("token", token);
-          localStorage.setItem("name", name);
-          localStorage.setItem("userId", id);
+          localStorage.setItem("userId", userId);
           localStorage.setItem("userType", "User");
-          console.log("User token stored:", token);
+          localStorage.setItem("userName", userName);
+          localStorage.setItem("userEmail", form.email);
+          
+          console.log("✅ User data stored:", {
+            userId: userId,
+            userType: "User",
+            token: token?.substring(0, 50) + "..."
+          });
         }
+        
+        // ✅ VERIFY data was stored correctly
+        console.log("🔍 Verification after storage:");
+        console.log("  - userId:", localStorage.getItem("userId"));
+        console.log("  - userType:", localStorage.getItem("userType"));
+        console.log("  - token exists:", !!localStorage.getItem("token"));
         
         setForm({ email: "", password: "" });
         toast.success(result.data.message || "Login Successfully!");
-
-        // Navigate based on role
-        if (role === "lawyer") {
-          navigate(`/lawyer/${id}`);
-        } else if (role === "doctor") {
-          navigate(`/doctor/${id}`);
-        } else {
-          navigate("/");
-        }
+        
+        // ✅ FORCE PAGE RELOAD to reset socket connection
+        setTimeout(() => {
+          if (role === "lawyer") {
+            window.location.href = `/lawyer/${userId}`;
+          } else if (role === "doctor") {
+            window.location.href = `/doctor/${userId}`;
+          } else {
+            window.location.href = "/";
+          }
+        }, 500);
 
       } else {
         // Login failed
