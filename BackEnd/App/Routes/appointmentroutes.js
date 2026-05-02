@@ -1,14 +1,152 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-const User = require("../Models/usermodel.js");
 const Appointment = require("../Models/Appointment.js");
 const appointmentRoutes = express.Router();
 const usermodel =require("../../App/Models/usermodel.js")
 const authMiddleware = require("../../MiddleWare/JWTToken.js");
 const sendEmail=require("../../Utils/sendEmail.js")
+const Stripe = require('stripe');
 
 const mongoose = require("mongoose");
+const stripe = new Stripe(process.env.stripekey);
+const frontendurl = "http://localhost:5173";
+async function createAppointmentPayment(req, res) {
+  try {
+    const userId = req.user.id;
+    const { appointmentId } = req.body;
+    
+    // Find the appointment
+    const appointment = await Appointment.findById(appointmentId)
+      .populate('lawyerId', 'registration.fullName registration.email profile.fee');
+    
+    if (!appointment) {
+      return res.json({ status: false, message: "Appointment not found!" });
+    }
+    
+    // Check if already paid
+    if (appointment.isPaid) {
+      return res.json({ status: false, message: "Appointment already paid!" });
+    }
+    
+    // Check if user owns this appointment
+    if (appointment.userId.toString() !== userId) {
+      return res.json({ status: false, message: "Unauthorized!" });
+    }
+    
+    // Create line items for Stripe (same as your order system)
+    const line_items = [{
+      price_data: {
+        currency: "pkr",
+        product_data: {
+          name: `Legal Consultation with ${appointment.lawyerId?.registration?.fullName || 'Lawyer'}`,
+          description: `Appointment on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time}`,
+        },
+        unit_amount: Math.round(appointment.lawyerId?.profile?.fee * 100), // Convert to cents (same as your order)
+      },
+      quantity: 1,
+    }];
+    
+    // Create Stripe Checkout Session (same as your order)
+    const session = await stripe.checkout.sessions.create({
+      line_items: line_items,
+      mode: "payment",
+      success_url: `${frontendurl}/appointment-verify?success=true&appointmentId=${appointment._id}`,
+      cancel_url: `${frontendurl}/appointment-verify?success=false&appointmentId=${appointment._id}`,
+    });
+    
+    // Save stripe session info to appointment
+    appointment.stripeSessionId = session.id;
+    await appointment.save();
+    
+    res.json({ 
+      status: true, 
+      session_url: session.url,
+      message: "Payment session created"
+    });
+    
+  } catch (e) {
+    console.error("Appointment payment creation failed:", e);
+    res.status(500).json({ status: false, message: "Server error", error: e.message });
+  }
+}
+appointmentRoutes.post("/payment", authMiddleware, createAppointmentPayment);
+
+// 2. Verify payment (like verifyorder)
+async function verifyAppointmentPayment(req, res) {
+  try {
+    const { appointmentId, success } = req.body;
+    
+    if (success == "true") {
+      // Update appointment isPaid to true (same as your order payment:true)
+      await Appointment.findByIdAndUpdate(appointmentId, { 
+        isPaid: true,
+        paidAt: new Date()
+      });
+      return res.json({ status: true, message: "paid" });
+    } 
+    else {
+      // Payment failed or cancelled - delete the appointment (same as your order)
+      await Appointment.findByIdAndDelete(appointmentId);
+      return res.json({ status: false, message: "not paid" });
+    }
+    
+  } catch (e) {
+    console.log(e.toString());
+    return res.json({ status: false, message: "Error" });
+  }
+}
+appointmentRoutes.post("/verify-payment", authMiddleware, verifyAppointmentPayment);
+
+async function markPaymentPaid(req, res) {
+  try {
+    const { id } = req.params;
+    const lawyerId = req.user.id;
+
+    // Find the appointment
+    const appointment = await Appointment.findById(id);
+    
+    if (!appointment) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Appointment not found" 
+      });
+    }
+
+    // Verify lawyer owns this appointment
+    if (appointment.lawyerId.toString() !== lawyerId) {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Unauthorized: This appointment does not belong to you" 
+      });
+    }
+
+    // Update payment status from unpaid to paid
+    appointment.isPaid = true;
+    appointment.paidAt = new Date();
+    
+    await appointment.save();
+
+    res.json({
+      success: true,
+      message: "Payment marked as paid successfully",
+      data: {
+        id: appointment._id,
+        isPaid: appointment.isPaid,
+        paidAt: appointment.paidAt
+      }
+    });
+
+  } catch (error) {
+    console.error("Mark payment error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
+  }
+}
+
+appointmentRoutes.patch('/:id/payment', authMiddleware, markPaymentPaid);
 
 // Create appointment - with authentication
 appointmentRoutes.post("/", authMiddleware, async (req, res) => {
@@ -135,6 +273,7 @@ appointmentRoutes.post("/", authMiddleware, async (req, res) => {
     });
   }
 });
+
 
 // Get user's appointments
 appointmentRoutes.get("/user", authMiddleware, async (req, res) => {

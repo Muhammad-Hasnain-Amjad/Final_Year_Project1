@@ -1,18 +1,21 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   FaCalendarAlt, FaClock, FaVideo, FaMapMarkerAlt,
   FaCheckCircle, FaHourglassHalf, FaTimesCircle, FaPlayCircle,
-  FaArrowLeft, FaFilter, FaStar, FaUserCheck, FaPhoneAlt
+  FaArrowLeft, FaFilter, FaStar, FaUserCheck, FaPhoneAlt,
+  FaCreditCard, FaSpinner, FaWallet
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import axios from "axios";
 
 const MyAppointments = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [processingPayment, setProcessingPayment] = useState(null);
 
   // Fetch appointments from backend
   const { data: appointments, isLoading, error, refetch } = useQuery({
@@ -37,6 +40,37 @@ const MyAppointments = () => {
       }
     }
   });
+
+  // Payment Mutation
+  const paymentMutation = useMutation({
+    mutationFn: async (appointmentId) => {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "http://localhost:5000/appointments/payment",
+        { appointmentId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      if (data.status && data.session_url) {
+        window.location.href = data.session_url;
+      } else {
+        toast.error(data.message || "Failed to create payment session");
+        setProcessingPayment(null);
+      }
+    },
+    onError: (error) => {
+      console.error("Payment error:", error);
+      toast.error(error.response?.data?.message || "Payment failed. Please try again.");
+      setProcessingPayment(null);
+    }
+  });
+
+  const handlePayNow = (appointmentId) => {
+    setProcessingPayment(appointmentId);
+    paymentMutation.mutate(appointmentId);
+  };
 
   // Status configuration with colors and icons
   const getStatusConfig = (status) => {
@@ -92,7 +126,9 @@ const MyAppointments = () => {
 
   // Filter appointments
   const filteredAppointments = appointments?.filter(app => 
-    selectedFilter === "all" ? true : app.status === selectedFilter
+    selectedFilter === "all" ? true : 
+    selectedFilter === "unpaid" ? (!app.isPaid && app.status !== "cancelled") :
+    app.status === selectedFilter
   ) || [];
 
   // Stats
@@ -102,7 +138,8 @@ const MyAppointments = () => {
     accepted: appointments?.filter(a => a.status === "accepted").length || 0,
     ongoing: appointments?.filter(a => a.status === "ongoing").length || 0,
     completed: appointments?.filter(a => a.status === "completed").length || 0,
-    cancelled: appointments?.filter(a => a.status === "cancelled").length || 0
+    cancelled: appointments?.filter(a => a.status === "cancelled").length || 0,
+    unpaid: appointments?.filter(a => !a.isPaid && a.status !== "cancelled").length || 0
   };
 
   const filterOptions = [
@@ -111,7 +148,8 @@ const MyAppointments = () => {
     { value: "accepted", label: "Confirmed", count: stats.accepted, color: "blue" },
     { value: "ongoing", label: "In Progress", count: stats.ongoing, color: "purple" },
     { value: "completed", label: "Completed", count: stats.completed, color: "green" },
-    { value: "cancelled", label: "Cancelled", count: stats.cancelled, color: "red" }
+    { value: "cancelled", label: "Cancelled", count: stats.cancelled, color: "red" },
+    { value: "unpaid", label: "Unpaid", count: stats.unpaid, color: "orange" }
   ];
 
   const getProgressWidth = (status) => {
@@ -169,7 +207,7 @@ const MyAppointments = () => {
 
       {/* Stats Cards */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-7 gap-4 mb-8">
           {filterOptions.map((filter, idx) => (
             <motion.button
               key={filter.value}
@@ -179,11 +217,17 @@ const MyAppointments = () => {
               onClick={() => setSelectedFilter(filter.value)}
               className={`p-4 rounded-xl border transition-all duration-300 ${
                 selectedFilter === filter.value
-                  ? `bg-${filter.color}-500/20 border-${filter.color}-400 shadow-lg`
+                  ? filter.color === 'orange' 
+                    ? 'bg-yellow-500/20 border-yellow-400 shadow-lg'
+                    : `bg-${filter.color}-500/20 border-${filter.color}-400 shadow-lg`
                   : 'bg-gray-900/50 border-gray-700 hover:border-yellow-400/50'
               }`}
             >
-              <p className={`text-2xl font-bold ${selectedFilter === filter.value ? `text-${filter.color}-400` : 'text-white'}`}>
+              <p className={`text-2xl font-bold ${
+                selectedFilter === filter.value 
+                  ? filter.color === 'orange' ? 'text-orange-400' : `text-${filter.color}-400`
+                  : 'text-white'
+              }`}>
                 {filter.count}
               </p>
               <p className="text-gray-400 text-sm">{filter.label}</p>
@@ -226,12 +270,12 @@ const MyAppointments = () => {
             
             <h2 className="text-2xl font-bold text-white mt-6">No Appointments Found</h2>
             <p className="text-gray-400 mt-2 max-w-md">
-              {selectedFilter !== "all" 
+              {selectedFilter !== "all" && selectedFilter !== "unpaid"
                 ? `You don't have any ${selectedFilter} appointments. Try a different filter.`
                 : "You haven't booked any appointments yet. Schedule your first consultation now!"}
             </p>
             
-            {selectedFilter !== "all" ? (
+            {selectedFilter !== "all" && selectedFilter !== "unpaid" ? (
               <button
                 onClick={() => setSelectedFilter("all")}
                 className="mt-6 px-6 py-3 bg-gray-800 text-white rounded-xl hover:bg-gray-700 transition"
@@ -252,10 +296,10 @@ const MyAppointments = () => {
             <AnimatePresence>
               {filteredAppointments.map((appointment, index) => {
                 const statusConfig = getStatusConfig(appointment.status);
-                const StatusIcon = statusConfig.icon;
                 const lawyer = appointment.lawyerId;
                 const appointmentDate = new Date(appointment.date);
                 const progressWidth = getProgressWidth(appointment.status);
+                const isUnpaid = !appointment.isPaid && appointment.status !== "cancelled";
                 
                 return (
                   <motion.div
@@ -265,30 +309,42 @@ const MyAppointments = () => {
                     exit={{ opacity: 0, y: -30 }}
                     transition={{ delay: index * 0.05 }}
                     whileHover={{ y: -5 }}
-                    className="group relative bg-gradient-to-br from-gray-900 to-black rounded-2xl border border-gray-700 hover:border-yellow-400/50 transition-all duration-300 overflow-hidden"
+                    className={`group relative bg-gradient-to-br from-gray-900 to-black rounded-2xl border transition-all duration-300 overflow-hidden ${
+                      isUnpaid 
+                        ? 'border-yellow-500/50 shadow-yellow-500/10 shadow-lg' 
+                        : 'border-gray-700 hover:border-yellow-400/50'
+                    }`}
                   >
-                    {/* Status Badge - Large and Prominent */}
-                  
+                    {/* Payment Required Banner */}
+                    {isUnpaid && (
+                      <div className="absolute top-0 right-0 left-0 bg-gradient-to-r from-yellow-500 to-yellow-600 px-4 py-1.5">
+                        <div className="flex items-center justify-center gap-2">
+                          <FaWallet className="text-white text-xs animate-pulse" />
+                          <span className="text-white text-xs font-semibold">PAYMENT REQUIRED</span>
+                          <FaWallet className="text-white text-xs animate-pulse" />
+                        </div>
+                      </div>
+                    )}
 
                     {/* Content */}
-                    <div className="p-6">
+                    <div className={`p-6 ${isUnpaid ? 'pt-14' : ''}`}>
                       {/* Lawyer Info */}
                       <div className="flex items-start gap-4 mb-5">
                         <div className="relative">
                           <img
                             src={lawyer?.registration?.profilePic?.url || "https://via.placeholder.com/70"}
                             alt={lawyer?.registration?.fullName}
-                            className="w-16 h-16 rounded-full object-cover border-2 border-yellow-400 shadow-lg"
+                            className="w-16 h-16 rounded-full object-cover border-2 border-orange-400 shadow-lg"
                           />
                           {appointment.status === "ongoing" && (
                             <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full animate-pulse ring-2 ring-black" />
                           )}
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-bold text-white text-lg group-hover:text-yellow-400 transition">
+                          <h3 className="font-bold text-white text-lg group-hover:text-orange-400 transition">
                             {lawyer?.registration?.fullName || "Lawyer Name"}
                           </h3>
-                          <p className="text-gray-400 text-sm mt-0.5">{appointment.caseType}</p>
+                          <p className="text-gray-400 text-sm mt-0.5">{appointment.caseType || "Legal Consultation"}</p>
                           <div className="flex items-center gap-2 mt-1.5">
                             <div className="flex items-center gap-0.5">
                               {[...Array(5)].map((_, i) => (
@@ -311,16 +367,12 @@ const MyAppointments = () => {
                           <span>{appointment.time}</span>
                         </div>
                         <div className="flex items-center gap-3 text-gray-400 text-sm">
-                          {appointment.meetingLink ? (
-                            <>
-                              <FaVideo className="text-yellow-400 w-4 h-4" />
-                              <span>Video Consultation</span>
-                            </>
+                          <FaCreditCard className="text-yellow-400 w-4 h-4" />
+                          
+                          {appointment.isPaid ? (
+                            <span className="text-green-500 text-xs ml-2 font-bold">✓ Paid</span>
                           ) : (
-                            <>
-                              <FaMapMarkerAlt className="text-yellow-400 w-4 h-4" />
-                              <span className="truncate">{lawyer?.registration?.officeAddress || "In Person"}</span>
-                            </>
+                            <span className="text-yellow-500 text-xs ml-2 font-bold">⚠️ Unpaid</span>
                           )}
                         </div>
                       </div>
@@ -339,7 +391,7 @@ const MyAppointments = () => {
                               initial={{ width: 0 }}
                               animate={{ width: progressWidth }}
                               transition={{ duration: 0.5 }}
-                              className={`h-full rounded-full bg-gradient-to-r ${statusConfig.progressColor}`}
+                              className={`h-full rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500`}
                             />
                           </div>
                         </div>
@@ -349,30 +401,43 @@ const MyAppointments = () => {
                       {appointment.description && (
                         <div className="mb-4 p-3 bg-gray-800/30 rounded-lg">
                           <p className="text-gray-400 text-xs line-clamp-2">
-                            <span className="text-yellow-400">Note:</span> {appointment.description}
+                            <span className="text-yellow-400">Description:</span> {appointment.description}
                           </p>
                         </div>
                       )}
 
                       {/* Action Button based on status */}
                       <div className="pt-3 border-t border-gray-800">
-                        {appointment.status === "pending" && (
-                          <div className="flex items-center justify-center gap-2 text-yellow-400 text-sm">
+                        {isUnpaid ? (
+                          <button
+                            onClick={() => handlePayNow(appointment._id)}
+                            disabled={processingPayment === appointment._id}
+                            className="w-full py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-xl font-semibold hover:scale-105 transition-all flex items-center justify-center gap-2"
+                          >
+                            {processingPayment === appointment._id ? (
+                              <>
+                                <FaSpinner className="animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                <FaCreditCard /> Pay Now
+                              </>
+                            )}
+                          </button>
+                        ) : appointment.status === "pending" ? (
+                          <div className="flex items-center justify-center gap-2 text-orange-400 text-sm">
                             <FaHourglassHalf className="animate-pulse" />
                             <span>Waiting for lawyer confirmation...</span>
                           </div>
-                        )}
-                        
-                        {appointment.status === "accepted" && (
+                        ) : appointment.status === "accepted" ? (
                           <button
                             onClick={() => window.location.href = `tel:${lawyer?.registration?.phoneNumber}`}
                             className="w-full py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-semibold hover:scale-105 transition-all flex items-center justify-center gap-2"
                           >
                             <FaPhoneAlt /> Contact Lawyer
                           </button>
-                        )}
-                        
-                        {appointment.status === "ongoing" && appointment.meetingLink && (
+                        ) : appointment.status === "ongoing" && appointment.meetingLink ? (
                           <a
                             href={appointment.meetingLink}
                             target="_blank"
@@ -381,27 +446,23 @@ const MyAppointments = () => {
                           >
                             <FaVideo /> Join Video Call
                           </a>
-                        )}
-                        
-                        {appointment.status === "completed" && (
+                        ) : appointment.status === "completed" ? (
                           <div className="flex items-center justify-center gap-2 text-green-400 text-sm">
                             <FaCheckCircle />
                             <span>Consultation completed successfully</span>
                           </div>
-                        )}
-                        
-                        {appointment.status === "cancelled" && (
+                        ) : appointment.status === "cancelled" ? (
                           <div className="flex items-center justify-center gap-2 text-red-400 text-sm">
                             <FaTimesCircle />
                             <span>Appointment cancelled</span>
                           </div>
-                        )}
+                        ) : null}
                       </div>
                     </div>
 
                     {/* Animated border for ongoing */}
                     {appointment.status === "ongoing" && (
-                      <div className="absolute inset-0 border-2 border-purple-500/30 rounded-2xl pointer-events-none animate-pulse" />
+                      <div className="absolute inset-0 border-2 border-orange-500/30 rounded-2xl pointer-events-none animate-pulse" />
                     )}
                   </motion.div>
                 );

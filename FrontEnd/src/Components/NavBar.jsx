@@ -130,40 +130,42 @@ const NavBar = () => {
           {/* Right Section - Chat Icon & Profile */}
           <div className="flex items-center gap-3 sm:gap-4">
             
-            {/* Chat Icon with Glowing Effect */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate("/chats")}
-              className="relative group hidden sm:flex"
-            >
-              <div className={`relative p-2 rounded-full transition-all duration-300 ${
-                hasUnreadMessages 
-                  ? "bg-yellow-500/20 animate-pulse" 
-                  : "hover:bg-white/10"
-              }`}>
-                <FiMessageCircle className={`w-5 h-5 transition-all duration-300 ${
+            {/* Chat Icon - Only show if logged in */}
+            {token && (
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate("/chats")}
+                className="relative group hidden sm:flex"
+              >
+                <div className={`relative p-2 rounded-full transition-all duration-300 ${
                   hasUnreadMessages 
-                    ? "text-yellow-400 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]" 
-                    : "text-white/80 group-hover:text-yellow-400"
-                }`} />
-                
-                <div className={`absolute inset-0 rounded-full ${
-                  hasUnreadMessages 
-                    ? "animate-ping bg-yellow-400/30" 
-                    : "opacity-0"
-                }`} />
-                
-                {hasUnreadMessages && (
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                )}
-              </div>
-              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs bg-black/90 text-yellow-400 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                Messages
-              </span>
-            </motion.button>
+                    ? "bg-yellow-500/20 animate-pulse" 
+                    : "hover:bg-white/10"
+                }`}>
+                  <FiMessageCircle className={`w-5 h-5 transition-all duration-300 ${
+                    hasUnreadMessages 
+                      ? "text-yellow-400 drop-shadow-[0_0_8px_rgba(234,179,8,0.8)]" 
+                      : "text-white/80 group-hover:text-yellow-400"
+                  }`} />
+                  
+                  <div className={`absolute inset-0 rounded-full ${
+                    hasUnreadMessages 
+                      ? "animate-ping bg-yellow-400/30" 
+                      : "opacity-0"
+                  }`} />
+                  
+                  {hasUnreadMessages && (
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                  )}
+                </div>
+                <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs bg-black/90 text-yellow-400 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Messages
+                </span>
+              </motion.button>
+            )}
 
-            {/* Profile / Account */}
+            {/* Profile / Account - Check token directly */}
             {token ? (
               <div className="relative profile-dropdown">
                 <motion.button
@@ -196,7 +198,7 @@ const NavBar = () => {
                         <div className="px-4 py-3 border-b border-yellow-500/20">
                           <p className="text-xs text-gray-400">Signed in as</p>
                           <p className="font-semibold text-yellow-400 truncate">
-                            {name || "User"}
+                            {name}
                           </p>
                         </div>
                         
@@ -261,7 +263,7 @@ const NavBar = () => {
               </motion.button>
             )}
 
-            {/* Hamburger Menu Button (Mobile) - FIXED */}
+            {/* Hamburger Menu Button (Mobile) */}
             <button
               onClick={toggleMenu}
               className="hamburger-btn md:hidden p-2 rounded-lg hover:bg-white/10 transition-all duration-300 focus:outline-none relative z-50"
@@ -277,7 +279,7 @@ const NavBar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu Overlay - FIXED */}
+      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
@@ -326,24 +328,27 @@ const NavBar = () => {
                   </motion.div>
                 ))}
                 
-                <div className="border-t border-yellow-500/20 my-3 mx-6" />
-                
-                {/* Chat Link in Mobile Menu */}
-                <motion.div variants={itemVariants}>
-                  <button
-                    onClick={() => {
-                      navigate("/chats");
-                      setIsMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-3 px-6 py-4 text-white/80 hover:bg-white/5 hover:text-yellow-400 transition-all duration-300"
-                  >
-                    <FiMessageCircle className="w-5 h-5" />
-                    <span className="font-medium text-base">Messages</span>
-                    {hasUnreadMessages && (
-                      <span className="ml-auto w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
-                    )}
-                  </button>
-                </motion.div>
+                {/* Only show chat in mobile menu if logged in */}
+                {token && (
+                  <>
+                    <div className="border-t border-yellow-500/20 my-3 mx-6" />
+                    <motion.div variants={itemVariants}>
+                      <button
+                        onClick={() => {
+                          navigate("/chats");
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-6 py-4 text-white/80 hover:bg-white/5 hover:text-yellow-400 transition-all duration-300"
+                      >
+                        <FiMessageCircle className="w-5 h-5" />
+                        <span className="font-medium text-base">Messages</span>
+                        {hasUnreadMessages && (
+                          <span className="ml-auto w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
+                        )}
+                      </button>
+                    </motion.div>
+                  </>
+                )}
               </div>
 
               {/* Menu Footer */}

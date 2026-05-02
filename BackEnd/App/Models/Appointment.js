@@ -43,7 +43,9 @@ const appointmentSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
-  }
+  },
+    isPaid: { type: Boolean, default: false },  // ← Simple! true=paid, false=not paid
+
 });
 
 module.exports = mongoose.model("Appointment", appointmentSchema);

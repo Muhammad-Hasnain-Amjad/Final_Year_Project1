@@ -16,6 +16,7 @@ import Dr_Reg from "./Pages/Dr_Reg";
 import NotFound from "./Pages/NotFound";
 import Law_Reg from "./Pages/Law_Reg";
 import Signup from "./Pages/Signup";
+import AppointmentVerify from "./Pages/AppointmentVerify";
 
 // ── Lawyer files ──────────────────────────────────────────
 import View_Lawyer_Profile from "./Lawyers_files/View_Lawyer_Profile";
@@ -41,6 +42,7 @@ const router = createBrowserRouter([
   { path: "/lawyer/:id",      element: <View_Lawyer_Profile /> },
   { path: "/lawyers_a/:id",   element: <LawyerProfile /> },
   { path: "/appointments",    element: <LawyerAppointments /> },
+  { path: "/appointment-verify", element: <AppointmentVerify /> },
 
   // ── USER chat routes ──────────────────────────────────
   // /chats          → ChatPage (shows list + empty state)
