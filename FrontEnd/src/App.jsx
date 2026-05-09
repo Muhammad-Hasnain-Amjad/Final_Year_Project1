@@ -21,7 +21,8 @@ import AppointmentVerify from "./Pages/AppointmentVerify";
 // ── Lawyer files ──────────────────────────────────────────
 import View_Lawyer_Profile from "./Lawyers_files/View_Lawyer_Profile";
 import LawyerAppointments from "./Lawyers_files/LawyerAppointments";
-import LawyerChatPage from "./Lawyers_files/LawyerChatPage";      // ✅ LAWYER CHAT
+import LawyerChatPage from "./Lawyers_files/LawyerChatPage";
+     import LegalChat from "./Components/Chat/LegalChat";
 
 // ── User Chat ─────────────────────────────────────────────
 import ChatPage from "./Pages/Chat/ChatPage";                      // ✅ USER CHAT
@@ -76,6 +77,7 @@ function App() {
     // ChatProvider wraps everything → socket is shared across all pages
     <ChatProvider>
       <RouterProvider router={router} />
+      <LegalChat />
     </ChatProvider>
   );
 }

@@ -61,5 +61,6 @@ llb: {
       ],
 });
 
-const lawyermodel =mongoose.model.Lawyer || mongoose.model("Lawyer", lawyerSchema);
-module.exports =lawyermodel
+module.exports =
+  mongoose.models.Lawyer ||
+  mongoose.model("Lawyer", lawyerSchema);
