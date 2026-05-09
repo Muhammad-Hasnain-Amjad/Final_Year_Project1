@@ -8,8 +8,10 @@ import {
   Stethoscope, 
   LayoutDashboard,
   Shield,
-  LogOut
+  LogOut,
+  TableRowsSplit
 } from "lucide-react";
+import { toast } from "react-toastify";
 
 export default function AdminLayout({ children }) {
   const navigate = useNavigate();
@@ -61,7 +63,17 @@ export default function AdminLayout({ children }) {
 
             <div className="absolute bottom-6 left-6 right-6">
               <button
-                onClick={() => navigate("/login")}
+               onClick={() => {
+
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userType");
+    localStorage.removeItem("token");
+    localStorage.clear();
+
+    navigate("/");
+    toast.success("Logged out successfully");
+  }}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30"
               >
                 <LogOut className="w-4 h-4 text-red-400" />

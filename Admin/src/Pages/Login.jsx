@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Alert from "../Components/Alert";
 import { toast } from "react-toastify";
-import { FaEye, FaEyeSlash, FaEnvelope, FaLock, FaArrowLeft } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaEnvelope, FaLock, FaShieldAlt, FaArrowLeft, FaCheck } from "react-icons/fa";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -11,9 +10,7 @@ export default function Login() {
 
   // Login State
   const [form, setForm] = useState({ email: "", password: "" });
-  const [role, setRole] = useState("user");
   const [showPassword, setShowPassword] = useState(false);
-  const [alert, setAlert] = useState({ show: false, type: "error", message: "" });
   const [loading, setLoading] = useState(false);
   
   // Forgot Password State
@@ -24,11 +21,10 @@ export default function Login() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
-  const [showResetPassword, setShowResetPassword] = useState(false);
 
   // Typing animation
   const [typedText, setTypedText] = useState("");
-  const fullTitle = "Cure & Counsel";
+  const fullTitle = "Admin Portal";
 
   useEffect(() => {
     let index = 0;
@@ -40,89 +36,59 @@ export default function Login() {
     return () => clearInterval(timer);
   }, []);
 
-  // Handle login input changes
+  // Handle login
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Handle login submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setAlert({ show: false, type: "error", message: "" });
 
     try {
-      let url = "";
-      if (role === "lawyer") {
-        url = "http://localhost:5000/lawyer/login";
-      } else {
-        url = "http://localhost:5000/user/login";
-      }
-
-      const result = await axios.post(url, {
+      const result = await axios.post(`${baseURL}/user/login`, {
         email: form.email,
         password: form.password,
-        role: role
+        role: "admin"
       }, {
         headers: { 'Content-Type': 'application/json' }
       });
 
       if (result.data.status === true || result.data.status === "true" || result.data.success === true) {
-        const token = result.data.usertoken || result.data.token || result.data.accessToken;
-        let userId = "";
-        let userName = "";
+        const token = result.data.token;
+        const userId = result.data.id;
+        const userName = result.data.name;
+
+        localStorage.clear();
+        localStorage.setItem("token", token);
+        localStorage.setItem("userId", userId);
+        localStorage.setItem("userType", "admin");
+        localStorage.setItem("userName", userName);
+        localStorage.setItem("userEmail", form.email);
+        localStorage.setItem("isAdmin", "true");
         
-        if (role === "lawyer") {
-          userId = result.data.id || result.data._id || result.data.lawyer?._id;
-          userName = result.data.name || result.data.fullName || result.data.registration?.fullName;
-          
-          localStorage.clear();
-          localStorage.setItem("token", token);
-          localStorage.setItem("userId", userId);
-          localStorage.setItem("userType", "Lawyer");
-          localStorage.setItem("userName", userName);
-          localStorage.setItem("userEmail", form.email);
-          localStorage.setItem("lawyertoken", token);
-          localStorage.setItem("lawyerId", userId);
-          localStorage.setItem("lawyerName", userName);
-        } else {
-          userId = result.data.id || result.data._id;
-          userName = result.data.name || result.data.fullName;
-          
-          localStorage.clear();
-          localStorage.setItem("token", token);
-          localStorage.setItem("userId", userId);
-          localStorage.setItem("userType", "User");
-          localStorage.setItem("userName", userName);
-          localStorage.setItem("userEmail", form.email);
-        }
-        
-        toast.success(result.data.message || "Login Successfully!");
+        toast.success("Welcome Admin! Redirecting to dashboard...");
         
         setTimeout(() => {
-          if (role === "lawyer") {
-            window.location.href = `/lawyer/${userId}`;
-          } else {
-            window.location.href = "/";
-          }
-        }, 500);
+          window.location.href = "/admin";
+        }, 1000);
       } else {
-        const errorMsg = result.data.message || "Invalid email or password";
-        setAlert({ show: true, type: "error", message: errorMsg });
-        toast.error(errorMsg);
+        toast.error(result.data.message || "Invalid admin credentials");
       }
     } catch (error) {
+      console.error("Login error:", error);
       let errorMessage = "Login failed. Please try again.";
+      
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
+      } else if (error.response?.status === 401) {
+        errorMessage = "Unauthorized. Admin access only.";
       } else if (error.response?.status === 404) {
-        errorMessage = `${role.charAt(0).toUpperCase() + role.slice(1)} not found`;
-      } else if (error.response?.status === 400) {
-        errorMessage = "Invalid password";
+        errorMessage = "Admin account not found";
       } else if (error.code === "ERR_NETWORK") {
-        errorMessage = "Cannot connect to server.";
+        errorMessage = "Cannot connect to server";
       }
-      setAlert({ show: true, type: "error", message: errorMessage });
+      
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -142,7 +108,7 @@ export default function Login() {
     try {
       const response = await axios.post(`${baseURL}/user/verify-email`, {
         email: resetEmail,
-        role: role
+        role: "admin"
       });
 
       if (response.data.success) {
@@ -153,6 +119,7 @@ export default function Login() {
         toast.error(response.data.message || "Email not found");
       }
     } catch (error) {
+      console.error("Email verification error:", error);
       toast.error(error.response?.data?.message || "Email not found. Please check and try again.");
     } finally {
       setResetLoading(false);
@@ -168,8 +135,8 @@ export default function Login() {
       return;
     }
     
-    if (newPassword.length < 8) {
-      toast.error("Password must be at least 8 characters");
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
       return;
     }
 
@@ -178,11 +145,12 @@ export default function Login() {
       const response = await axios.post(`${baseURL}/user/reset-password-direct`, {
         email: resetEmail,
         newPassword: newPassword,
-        role: role
+        role: "admin"
       });
 
       if (response.data.success) {
         toast.success("Password reset successful! Please login with new password.");
+        // Reset all states and go back to login
         setTimeout(() => {
           setShowForgotPassword(false);
           setStep(1);
@@ -195,6 +163,7 @@ export default function Login() {
         toast.error(response.data.message || "Failed to reset password");
       }
     } catch (error) {
+      console.error("Reset password error:", error);
       toast.error(error.response?.data?.message || "Failed to reset password");
     } finally {
       setResetLoading(false);
@@ -206,6 +175,7 @@ export default function Login() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black px-6 py-10">
         <div className="w-full max-w-md">
+          {/* Back button */}
           <button
             onClick={() => {
               setShowForgotPassword(false);
@@ -236,10 +206,11 @@ export default function Login() {
             </div>
 
             {step === 1 ? (
+              // Step 1: Email verification form
               <form onSubmit={handleVerifyEmail}>
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Email Address
+                    Admin Email
                   </label>
                   <div className="relative">
                     <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -248,7 +219,7 @@ export default function Login() {
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
                       className="w-full bg-gray-900 text-white pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 border border-gray-700"
-                      placeholder="you@example.com"
+                      placeholder="admin@example.com"
                       required
                       autoFocus
                     />
@@ -263,6 +234,7 @@ export default function Login() {
                 </button>
               </form>
             ) : (
+              // Step 2: Reset password form
               <form onSubmit={handleResetPassword}>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -271,14 +243,21 @@ export default function Login() {
                   <div className="relative">
                     <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     <input
-                      type={showResetPassword ? "text" : "password"}
+                      type={showPassword ? "text" : "password"}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       className="w-full bg-gray-900 text-white pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 border border-gray-700"
-                      placeholder="Enter new password (min. 8 characters)"
+                      placeholder="Enter new password"
                       required
                       autoFocus
                     />
+                     <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-yellow-400"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
                   </div>
                 </div>
 
@@ -289,13 +268,20 @@ export default function Login() {
                   <div className="relative">
                     <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     <input
-                      type={showResetPassword ? "text" : "password"}
+                      type={showPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className="w-full bg-gray-900 text-white pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 border border-gray-700"
                       placeholder="Confirm new password"
                       required
                     />
+                     <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-yellow-400"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
                   </div>
                 </div>
 
@@ -314,77 +300,89 @@ export default function Login() {
     );
   }
 
-  // Main Login UI
+  // Main Login UI (BLACK BACKGROUND)
   return (
     <div className="min-h-screen flex items-center justify-center bg-black px-6 py-10">
       <div className="grid grid-cols-1 md:grid-cols-2 w-full max-w-5xl gap-10">
-
-        {/* LEFT — Typing Text */}
+        
+        {/* LEFT SIDE - Admin Branding */}
         <div className="text-white flex flex-col justify-center md:pl-6">
-          <h1 className="text-4xl font-bold mb-6">
-            Welcome back to <span className="text-yellow-400">{typedText}</span>
-          </h1>
-          <p className="mt-6 text-gray-400">
-            Experience seamless appointments, professional guidance, and 24/7 availability.
+          <div className="inline-flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-full bg-yellow-500 flex items-center justify-center">
+              <FaShieldAlt className="text-2xl text-black" />
+            </div>
+            <h1 className="text-4xl font-bold">
+              Admin <span className="text-yellow-400">{typedText}</span>
+            </h1>
+          </div>
+          <p className="text-gray-300 text-lg leading-relaxed">
+            Secure access to manage lawyers, doctors, users, and platform analytics.
           </p>
+          <div className="mt-8 space-y-3">
+            <div className="flex items-center gap-3 text-gray-400">
+              <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+              <span>Manage user accounts</span>
+            </div>
+            <div className="flex items-center gap-3 text-gray-400">
+              <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+              <span>Verify professional credentials</span>
+            </div>
+            <div className="flex items-center gap-3 text-gray-400">
+              <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+              <span>Platform analytics & reports</span>
+            </div>
+          </div>
         </div>
 
-        {/* RIGHT — LOGIN FORM */}
+        {/* RIGHT SIDE - Admin Login Form */}
         <form
           onSubmit={handleSubmit}
-          className="w-full bg-black text-white p-8 rounded-2xl
-            shadow-[0_80px_400px_rgba(250,204,21,0.20)]
-            focus-within:ring-4 focus-within:ring-yellow-400/40
-            transition-all"
+          className="w-full bg-black text-white p-8 rounded-2xl shadow-2xl border border-yellow-500/30 focus-within:ring-4 focus-within:ring-yellow-400/40 transition-all"
         >
-          <h1 className="text-2xl md:text-3xl font-semibold mb-6 text-center">
-            Login to Continue
-          </h1>
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold">Admin Access Only</h2>
+            <p className="text-gray-400 text-sm mt-2">Enter your credentials to continue</p>
+          </div>
 
-          {alert.show && (
-            <Alert
-              type={alert.type}
-              message={alert.message}
-              onClose={() => setAlert({ ...alert, show: false })}
-              duration={2000}
-            />
-          )}
-
-          {/* Email */}
-          <label className="block mb-4">
-            <span className="text-sm font-medium block mb-2">Email</span>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              required
-              className="w-full bg-white text-black px-4 py-3 rounded-md
-                focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              placeholder="you@example.com"
-            />
+          {/* Email Field */}
+          <label className="block mb-6">
+            <span className="text-sm font-medium block mb-2 text-gray-300">Email Address</span>
+            <div className="relative">
+              <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                required
+                className="w-full bg-gray-900 text-white pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 border border-gray-700"
+                placeholder="admin@curecounsel.com"
+              />
+            </div>
           </label>
 
-          {/* Password */}
+          {/* Password Field */}
           <label className="block mb-4 relative">
-            <span className="text-sm font-medium block mb-2">Password</span>
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              className="w-full bg-white text-black px-4 py-3 rounded-md
-                focus:outline-none focus:ring-2 focus:ring-yellow-400 pr-12"
-              placeholder="Enter your password"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((s) => !s)}
-              className="absolute right-3 top-9 text-sm text-gray-700"
-            >
-              {showPassword ? "Hide" : "Show"}
-            </button>
+            <span className="text-sm font-medium block mb-2 text-gray-300">Password</span>
+            <div className="relative">
+              <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                required
+                className="w-full bg-gray-900 text-white pl-10 pr-12 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 border border-gray-700"
+                placeholder="Enter your password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-yellow-400"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </label>
 
           {/* Forgot Password Link */}
@@ -398,64 +396,22 @@ export default function Login() {
             </button>
           </div>
 
-          {/* Role Selection */}
-          <div className="flex flex-col gap-2 mb-6">
-            <label className="font-semibold text-yellow-400">
-              Login As
-            </label>
-
-            <div className="flex gap-6">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="role"
-                  value="lawyer"
-                  checked={role === "lawyer"}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="accent-yellow-400"
-                />
-                <span className="text-gray-300">Lawyer</span>
-              </label>
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="role"
-                  value="user"
-                  checked={role === "user"}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="accent-yellow-400"
-                />
-                <span className="text-gray-300">User</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Submit */}
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-yellow-400 text-black font-semibold py-3 rounded-md hover:bg-yellow-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-yellow-500 text-black font-semibold py-3 rounded-lg hover:bg-yellow-400 transition disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all"
           >
-            {loading ? "Logging in..." : "Log In"}
+            {loading ? "Authenticating..." : "Login as Admin"}
           </button>
 
-          <p className="mt-6 text-center text-sm text-gray-300">
-            Don't have an account?{" "}
-            <button
-              type="button"
-              className="text-yellow-300 hover:underline"
-              onClick={() => navigate("/signup")}
-            >
-              Sign up
-            </button>
-          </p>
-          <p className="mt-6 text-center text-gray-400">
-            Want to visit the platform?{" "}
-            <Link to="/" className="text-yellow-400 hover:underline">
-              Go to Home
-            </Link>
-          </p>
+          {/* Security Note */}
+          <div className="mt-6 pt-6 border-t border-gray-800 text-center">
+            <p className="text-xs text-gray-600">
+              This area is restricted to authorized personnel only.
+              All activities are monitored and logged.
+            </p>
+          </div>
         </form>
       </div>
     </div>

@@ -16,8 +16,9 @@ export default function Signup() {
     name: "",
     email: "",
     password: "",
+    role: "user"
   });
-
+  
   const [alert, setAlert] = useState({ show: false, type: "error", message: "" });
 
   // -----------------------------

@@ -27,10 +27,7 @@ const allowedOrigins = process.env.FRONTEND_URLS
 console.log('✅ Allowed CORS origins:', allowedOrigins);
 
 // ✅ Dynamic CORS for Express
-app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true
-}));
+app.use(cors());
 
 
 app.use(express.json());
@@ -49,9 +46,9 @@ const server = http.createServer(app);
 // ✅ DYNAMIC Socket.IO CORS (Fixed - not hardcoded)
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "*",
     credentials: true,
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST","PATCH","DELETE"],
   }
 });
 
@@ -59,7 +56,7 @@ const io = new Server(server, {
 initializeSocket(io);
 
 // Database connection and server start
-const PORT = process.env.PORT || 5000;
+const PORT =5000;
 
 server.listen(PORT, () => {
   const conn = DBConnection();

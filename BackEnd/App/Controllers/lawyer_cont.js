@@ -3,6 +3,7 @@ const uploadFile=require("../../Utils/upLoadfile")
 const { deleteCloudinaryFiles } = require("../../Utils/Cloudinary.js")
 const sendEmail=require("../../Utils/sendEmail.js")
  const jwt = require("jsonwebtoken");
+const bcrypt = require('bcrypt'); // ← ADD THIS
 
 async function addlawyer(req, res) {
   try {
@@ -66,7 +67,8 @@ async function addlawyer(req, res) {
           uploadFile(llb, `${folder}/llb`),
           uploadFile(barCouncilCard, `${folder}/barCouncilCard`)
         ]);
-
+const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
     // Create lawyer
     let lawyer = new lawyermodel({
       registration: {
@@ -84,7 +86,7 @@ async function addlawyer(req, res) {
         courtLevel,
         officeAddress,
         username,
-        password, 
+        password: hashedPassword,
         profilePic: {
   url: profilePicResult.secure_url,
   public_id: profilePicResult.public_id
@@ -252,13 +254,21 @@ await lawyer.deleteOne();
     return res.status(500).json({ success: false, message: "Server error", error: error.message });
   }
 }
-
 async function loginlawyer(req, res) {
   let accountid = null;
 
   try {
     const { email, password } = req.body;
 
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        status: false,
+        message: "Email and password are required",
+      });
+    }
+
+    // Find lawyer by email
     const lawyer = await lawyermodel.findOne({ "registration.email": email });
 
     if (!lawyer) {
@@ -269,7 +279,10 @@ async function loginlawyer(req, res) {
       });
     }
 
-    if (lawyer.registration.password != password) {
+    // ✅ FIX: Use bcrypt.compare for hashed password comparison
+    const isPasswordValid = await bcrypt.compare(password, lawyer.registration.password);
+    
+    if (!isPasswordValid) {
       return res.status(400).json({
         status: false,
         id: accountid,
@@ -279,16 +292,16 @@ async function loginlawyer(req, res) {
 
     accountid = lawyer._id;
 
-    // TOKEN GENERATION
-    
+    // Token generation
     const token = jwt.sign(
       {
         id: lawyer._id,
         type: "Lawyer",
         email: lawyer.registration.email,
+        name: lawyer.registration.fullName
       },
-     process.env.JWT_SECRET,   // put this in .env in production
-      { expiresIn: "1d" }
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" } // Changed to 7 days for consistency
     );
 
     return res.json({
@@ -300,12 +313,14 @@ async function loginlawyer(req, res) {
     });
 
   } catch (err) {
+    console.error("Lawyer login error:", err);
     res.status(500).json({
       status: false,
       message: err.message,
     });
   }
 }
+
  async function IDlawyer(req, res) {
   try {
 

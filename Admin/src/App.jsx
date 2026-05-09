@@ -6,14 +6,14 @@ import All_Drs from './Pages/All_Drs'
 import All_Lawyers from './Pages/All_Lawyers'
 import Temp_lawyer from './Pages/Temp_lawyer'
 import './App.css'
-
+import Login from './Pages/Login'
 function App() {
   const route = createBrowserRouter([
     {
       path: "/",
       element: (
         <div>
-          <Home />
+          <Login />
         </div>
       )
     },
