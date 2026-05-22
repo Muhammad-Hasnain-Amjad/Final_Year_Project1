@@ -47,10 +47,9 @@ function StatCard({ title, value, icon, trend, color, delay }) {
 
 export default function OverviewCards() {
   const stats = [
-    { title: "Total Users", value: 2345, icon: Users, color: "from-blue-500 to-blue-600", trend: "+12%", delay: 0 },
-    { title: "Pending Doctors", value: 12, icon: Clock, color: "from-orange-500 to-orange-600", trend: "+2", delay: 0.1 },
+    { title: "Total Users", value: 23, icon: Users, color: "from-blue-500 to-blue-600", trend: "+12%", delay: 0 },
     { title: "Pending Lawyers", value: 8, icon: AlertCircle, color: "from-yellow-500 to-yellow-600", trend: "+3", delay: 0.2 },
-    { title: "Approved Total", value: 220, icon: CheckCircle, color: "from-green-500 to-green-600", trend: "+18%", delay: 0.3 },
+    { title: "Approved Total", value: 22, icon: CheckCircle, color: "from-green-500 to-green-600", trend: "+18%", delay: 0.3 },
   ];
 
   return (
