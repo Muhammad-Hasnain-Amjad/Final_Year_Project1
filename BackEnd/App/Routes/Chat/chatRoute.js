@@ -8,7 +8,7 @@ const {
 const authMiddleware = require('../../../MiddleWare/JWTToken.js');
 const {getLegalAdvice}=require('../../../Services/deepSeekServices.js');
 const chatRouter = express.Router();
-const lawyermodel = require('../../Models/lawyerModel.js');
+const lawyermodel = require('../../Models/Lawyermodel.js');
 
 
 // Create or get a chat
