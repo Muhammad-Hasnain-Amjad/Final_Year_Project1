@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import AdminLayout from './Components/AdminLayout' // Import the new layout
 import Home from './Pages/Home'
-import All_Drs from './Pages/All_Drs'
 import All_Lawyers from './Pages/All_Lawyers'
 import Temp_lawyer from './Pages/Temp_lawyer'
 import './App.css'
 import Login from './Pages/Login'
+import All_Appoint from "./Pages/All_Appoint";
+import AppointmentDetails from "./Components/AppointmentDetails";
+import AllUsers from "./Pages/AllUsers";
 function App() {
   const route = createBrowserRouter([
     {
@@ -26,10 +28,10 @@ function App() {
       )
     },
     {
-      path: "/doctors_a",
+      path: "/appointments",
       element: (
         <AdminLayout>
-          <All_Drs />
+          <All_Appoint />
         </AdminLayout>
       )
     },
@@ -46,6 +48,22 @@ function App() {
       element: (
         <AdminLayout>
           <Temp_lawyer />
+        </AdminLayout>
+      )
+    },
+    {
+      path: "/appointments/:id",
+      element: (
+        <AdminLayout>
+          <AppointmentDetails />
+        </AdminLayout>
+      )
+    },
+    {
+      path:"/users_a",
+      element:(
+        <AdminLayout>
+          <AllUsers />
         </AdminLayout>
       )
     }

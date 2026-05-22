@@ -19,7 +19,7 @@ export default function AdminLayout({ children }) {
 
   const navItems = [
     { title: "Dashboard", path: "/admin", icon: LayoutDashboard },
-    { title: "Doctors", path: "/doctors_a", icon: Stethoscope },
+    { title: "Appointments", path: "/appointments", icon: TableRowsSplit },
     { title: "Lawyers", path: "/lawyers_a", icon: Scale },
     { title: "Users", path: "/users_a", icon: Users },
   ];

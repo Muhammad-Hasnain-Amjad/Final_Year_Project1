@@ -41,13 +41,13 @@ export default function About() {
   transition={{ duration: 1.2 }}
 >
   <p>
-    Cure & Counsel is Pakistan’s <span className="font-semibold text-yellow-400">first trusted platform bridging the gap between legal and medical professionals</span>. In a country where reliable access to certified doctors and licensed lawyers is often challenging, we recognized the need for a single, transparent, and trustworthy network. Our platform is designed to provide you <span className="font-semibold text-yellow-400">peace of mind</span>, knowing that every professional you connect with is verified and highly qualified.
+    Cure & Counsel is Pakistan’s <span className="font-semibold text-yellow-400">first trusted platform bridging the gap between legal  professionals</span>. In a country where reliable access to  licensed lawyers is often challenging, we recognized the need for a single, transparent, and trustworthy network. Our platform is designed to provide you <span className="font-semibold text-yellow-400">peace of mind</span>, knowing that every professional you connect with is verified and highly qualified.
   </p>
   <p>
-    We believe that <span className="font-semibold text-yellow-400">healthcare and legal support are fundamental rights</span>, and our mission is to make both <span className="font-semibold text-yellow-400">accessible, reliable, and simple</span>. By connecting medical and legal professionals on a single platform, Cure & Counsel empowers people to <span className="font-semibold text-yellow-400">make informed decisions without the stress of uncertainty or fraud</span>.
+    We believe that <span className="font-semibold text-yellow-400">legal support is a fundamental rights</span>, and our mission is to make both <span className="font-semibold text-yellow-400">accessible, reliable, and simple</span>. By connecting legal professionals on a single platform, Cure & Counsel empowers people to <span className="font-semibold text-yellow-400">make informed decisions without the stress of uncertainty or fraud</span>.
   </p>
   <p>
-    At Cure & Counsel, our mission is simple: <span className="font-semibold text-yellow-400">to make professional healthcare and legal guidance accessible, reliable, and trustworthy for everyone</span>. By integrating technology, trust, and professionalism, we are redefining how people connect with experts who can truly make a difference.
+    At Cure & Counsel, our mission is simple: <span className="font-semibold text-yellow-400">to make professional legal guidance accessible, reliable, and trustworthy for everyone</span>. By integrating technology, trust, and professionalism, we are redefining how people connect with experts who can truly make a difference.
   </p>
 </motion.div>
 
@@ -85,9 +85,9 @@ export default function About() {
           Why Choose Us?
         </h2>
         <ul className="list-disc list-inside space-y-2 text-white md:text-lg">
-          <li><span className="font-semibold text-yellow-400">Verified Professionals</span> – Every doctor and lawyer is thoroughly screened.</li>
+          <li><span className="font-semibold text-yellow-400">Verified Professionals</span> – Every lawyer is thoroughly screened.</li>
           <li><span className="font-semibold text-yellow-400">Reliable Platform</span> – Designed to be secure, user-friendly, and responsive.</li>
-          <li><span className="font-semibold text-yellow-400">Pakistan First</span> – The only platform combining legal and medical expertise under one trusted roof.</li>
+          <li><span className="font-semibold text-yellow-400">Pakistan First</span> – The only platform combining legal expertise under one trusted roof.</li>
           <li><span className="font-semibold text-yellow-400">Accessible Anywhere</span> – From Karachi to Gilgit, our platform connects professionals to you anytime, anywhere.</li>
         </ul>
       </div>

@@ -6,9 +6,12 @@ const lawyermodel = require("../../Models/Lawyermodel");
 // Get or create a chat between two users
 async function getOrCreateChat(req, res) {
   try {
-    const { otherUserId, otherUserType } = req.body;
-    const currentUserId = req.user.id;
-    const currentUserType = req.user.type;
+    let { otherUserId, otherUserType } = req.body;
+    let currentUserId = req.user.id;
+    let currentUserType = req.user.type;
+    currentUserType = currentUserType === "user" ? "User" : "Lawyer";
+    let otherUserTypeCapitalized = otherUserType === "user" ? "User" : "Lawyer";
+
 
     // Check if chat already exists
     let chat = await Chat.findOne({
@@ -18,7 +21,7 @@ async function getOrCreateChat(req, res) {
     if (!chat) {
       chat = await Chat.create({
         participants: [currentUserId, otherUserId],
-        participantModels: [currentUserType, otherUserType],
+        participantModels: [currentUserType,otherUserTypeCapitalized],
         unreadCount: new Map(),
         lastMessage: "",
         lastMessageTime: new Date()
@@ -26,7 +29,7 @@ async function getOrCreateChat(req, res) {
     }
 
     // Get other participant details
-    const otherUser = otherUserType === 'User' 
+    const otherUser = otherUserTypeCapitalized==='User' 
       ? await usermodel.findById(otherUserId).select('name email')
       : await lawyermodel.findById(otherUserId).select('registration.fullName registration.email registration.profilePic');
 
@@ -46,8 +49,9 @@ async function getOrCreateChat(req, res) {
 // Get user's all chats
 async function getUserChats(req, res) {
   try {
-    const userId = req.user.id;
-    const userType = req.user.type;
+    let userId = req.user.id;
+    let userType = req.user.type;
+userType = userType === "user" ? "User" : "Lawyer";
 
     const chats = await Chat.find({
       participants: userId,
@@ -179,10 +183,43 @@ async function markMessagesAsRead(req, res) {
     res.status(500).json({ success: false, message: error.message });
   }
 }
+async function getSimpleUnreadCount(req, res) {
+  try {
+    const userId = req.user.id;
+
+    // Aggregate unread counts directly from database
+    const result = await Chat.aggregate([
+      { $match: { participants: userId, isActive: true } },
+      { $project: {
+          unreadCountForUser: {
+            $ifNull: [{ $getField: { field: userId, input: "$unreadCount" } }, 0]
+          }
+        }
+      },
+      { $group: {
+          _id: null,
+          totalUnread: { $sum: "$unreadCountForUser" }
+        }
+      }
+    ]);
+
+    const totalUnread = result.length > 0 ? result[0].totalUnread : 0;
+
+    res.status(200).json({
+      success: true,
+      totalUnread: totalUnread,
+      hasUnread: totalUnread > 0
+    });
+  } catch (error) {
+    console.error("GetSimpleUnreadCount Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
 
 module.exports = {
   getOrCreateChat,
   getUserChats,
   getChatMessages,
-  markMessagesAsRead
+  markMessagesAsRead,
+  getSimpleUnreadCount
 };

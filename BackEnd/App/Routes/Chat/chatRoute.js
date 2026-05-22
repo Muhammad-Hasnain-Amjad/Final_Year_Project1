@@ -3,7 +3,7 @@ const {
   getOrCreateChat,
   getUserChats, 
   getChatMessages,
-  markMessagesAsRead 
+  markMessagesAsRead,getSimpleUnreadCount 
 } = require('../../Controllers/Chat/chat_cont.js');
 const authMiddleware = require('../../../MiddleWare/JWTToken.js');
 const {getLegalAdvice}=require('../../../Services/deepSeekServices.js');
@@ -39,7 +39,7 @@ chatRouter.post('/ask', async (req, res) => {
     }
   }
 });
-
+chatRouter.get("/unread-count", authMiddleware, getSimpleUnreadCount);
 // Lawyer-specific chat (with lawyer's expertise)
 
 

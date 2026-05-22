@@ -20,9 +20,9 @@ function Footer() {
           </div>
 
           <p className="text-sm text-gray-200 leading-relaxed">
-            Cure & Counsel connects you with expert doctors and trusted lawyers.
+            Cure & Counsel connects you with expert and trusted lawyers.
             Fast, reliable, and secure  we help you book the right consultation
-            whenever you need it. Your health and legal guidance, simplified.
+            whenever you need it. Your  legal guidance, simplified.
           </p>
 
           <div className="flex gap-5 text-2xl mt-2">
@@ -38,7 +38,7 @@ function Footer() {
           <ul className="space-y-3 text-gray-300 text-sm">
             <li className="hover:text-yellow-400 cursor-pointer transition">Home</li>
             <li className="hover:text-yellow-400 cursor-pointer transition">About Us</li>
-            <li className="hover:text-yellow-400 cursor-pointer transition">Doctors</li>
+           
             <li className="hover:text-yellow-400 cursor-pointer transition">Lawyers</li>
             <li className="hover:text-yellow-400 cursor-pointer transition">Privacy Policy</li>
           </ul>

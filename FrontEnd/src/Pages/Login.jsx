@@ -67,22 +67,18 @@ export default function Login() {
         headers: { 'Content-Type': 'application/json' }
       });
 
-      if (result.data.status === true || result.data.status === "true" || result.data.success === true) {
-        const token = result.data.usertoken || result.data.token || result.data.accessToken;
+      if (result.data.status === true) {
+        const token =result.data.token;
         let userId = "";
         let userName = "";
         
         if (role === "lawyer") {
-          userId = result.data.id || result.data._id || result.data.lawyer?._id;
-          userName = result.data.name || result.data.fullName || result.data.registration?.fullName;
+          userId = result.data.id;
+          userName = result.data.name;
           
           localStorage.clear();
-          localStorage.setItem("token", token);
-          localStorage.setItem("userId", userId);
           localStorage.setItem("userType", "Lawyer");
-          localStorage.setItem("userName", userName);
-          localStorage.setItem("userEmail", form.email);
-          localStorage.setItem("lawyertoken", token);
+          localStorage.setItem("token", token);
           localStorage.setItem("lawyerId", userId);
           localStorage.setItem("lawyerName", userName);
         } else {

@@ -14,6 +14,6 @@ createRoot(document.getElementById('root')).render(
         <App />
       </ChatProvider>
     </QueryClientProvider>
-     <ToastContainer autoClose={1000} />
+     <ToastContainer autoClose={3000} />
   </StrictMode>,
 )

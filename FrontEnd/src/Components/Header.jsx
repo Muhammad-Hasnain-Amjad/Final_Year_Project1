@@ -55,7 +55,7 @@ const Header = () => {
         <motion.p className="mt-6 text-gray-300 text-sm sm:text-base md:text-lg max-w-2xl leading-relaxed"
           {...scrollAnim(0.4)}
         >
-          Connect with trusted lawyers and doctors instantly. Book consultations,
+          Connect with trusted lawyers. Book consultations,
           get expert guidance, and manage everything in one seamless platform.
         </motion.p>
 
@@ -63,12 +63,7 @@ const Header = () => {
         <motion.div className="mt-8 flex flex-col sm:flex-row gap-4"
           {...scrollAnim(0.6)}
         >
-          <button
-            onClick={() => navigate("/doctors")}
-            className="px-6 py-3 bg-yellow-400 text-black font-semibold rounded-md hover:bg-yellow-500 transition hover:scale-105"
-          >
-            Find a Doctor
-          </button>
+         
 
           <button
             onClick={() => navigate("/lawyers")}

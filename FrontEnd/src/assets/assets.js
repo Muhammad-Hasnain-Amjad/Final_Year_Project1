@@ -18,11 +18,7 @@ import headphone from '../assets/headphone.png';
 import booking from '../assets/booking.png';
 
 export const services = [
-  {
-    title: 'Book Expert Doctors',
-    desc: 'Schedule appointments with verified and experienced doctors across all specialties.',
-    image: trusteddr,
-  },
+  
   {
     title: 'Trusted Lawyers',
     desc: 'Connect with professional lawyers for family, business, and legal matters.',

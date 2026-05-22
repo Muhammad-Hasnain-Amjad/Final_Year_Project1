@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FiMenu, FiX, FiMessageCircle, FiHome, FiUsers, FiBriefcase, FiInfo, FiPhone, FiUser, FiLogOut, FiCalendar } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
 import logo from "../assets/logo.jpeg";
 import profilepic from "../assets/profile_icon.png";
 
@@ -12,9 +13,28 @@ const NavBar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   
   const token = localStorage.getItem("token");
-  const name = localStorage.getItem("name");
+  const name = localStorage.getItem("userName");
+
+  // Fetch unread messages count
+  const fetchUnreadCount = async () => {
+    if (!token) return;
+    
+    try {
+      const response = await axios.get('http://localhost:5000/chats/unread-count', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        setUnreadCount(response.data.totalUnread);
+        setHasUnreadMessages(response.data.hasUnread);
+      }
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+    }
+  };
 
   // Handle scroll effect
   useEffect(() => {
@@ -24,6 +44,16 @@ const NavBar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Fetch unread count on mount and periodically
+  useEffect(() => {
+    fetchUnreadCount();
+    
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+    
+    return () => clearInterval(interval);
+  }, [token]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -53,8 +83,10 @@ const NavBar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("name");
-    localStorage.removeItem("user");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userType");  
     toast.success("Logout Successfully!");
     navigate("/");
     setIsProfileOpen(false);
@@ -63,7 +95,6 @@ const NavBar = () => {
 
   const navLinks = [
     { path: "/", name: "Home", icon: FiHome },
-    { path: "/doctors", name: "Doctors", icon: FiUsers },
     { path: "/lawyers", name: "Lawyers", icon: FiBriefcase },
     { path: "/about", name: "About", icon: FiInfo },
     { path: "/contactus", name: "Contact", icon: FiPhone },
@@ -156,112 +187,126 @@ const NavBar = () => {
                   }`} />
                   
                   {hasUnreadMessages && (
-                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full text-white text-xs flex items-center justify-center px-1 animate-pulse">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
                   )}
                 </div>
                 <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs bg-black/90 text-yellow-400 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  Messages
+                  Messages {hasUnreadMessages && `(${unreadCount})`}
                 </span>
               </motion.button>
             )}
 
-            {/* Profile / Account - Check token directly */}
-            {token ? (
-              <div className="relative profile-dropdown">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="group relative flex items-center gap-2 focus:outline-none"
-                >
-                  <div className="relative">
-                    <img
-                      src={profilepic}
-                      alt="profile"
-                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-yellow-400 shadow-md cursor-pointer transition-all duration-300 group-hover:border-yellow-300"
-                    />
-                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-black" />
-                  </div>
-                </motion.button>
+          {/* Profile / Account - Check token directly */}
+{token ? (
+  <div className="relative profile-dropdown">
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={() => setIsProfileOpen(!isProfileOpen)}
+      className="group relative flex items-center gap-2 focus:outline-none"
+    >
+      <div className="relative">
+        <img
+          src={profilepic}
+          alt="profile"
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-yellow-400 shadow-md cursor-pointer transition-all duration-300 group-hover:border-yellow-300"
+        />
+        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-black" />
+      </div>
+    </motion.button>
 
-                {/* Dropdown Menu */}
-                <AnimatePresence>
-                  {isProfileOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 top-full mt-2 bg-black/95 backdrop-blur-md border border-yellow-500/30 rounded-xl shadow-2xl w-56 z-50 overflow-hidden"
-                    >
-                      <div className="py-2">
-                        <div className="px-4 py-3 border-b border-yellow-500/20">
-                          <p className="text-xs text-gray-400">Signed in as</p>
-                          <p className="font-semibold text-yellow-400 truncate">
-                            {name}
-                          </p>
-                        </div>
-                        
-                        <button
-                          onClick={() => {
-                            navigate("/myprofile");
-                            setIsProfileOpen(false);
-                          }}
-                          className="w-full px-4 py-2.5 text-left text-sm text-white/80 hover:bg-yellow-400/10 hover:text-yellow-400 transition flex items-center gap-3"
-                        >
-                          <FiUser className="w-4 h-4" />
-                          My Profile
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            navigate("/myappointments");
-                            setIsProfileOpen(false);
-                          }}
-                          className="w-full px-4 py-2.5 text-left text-sm text-white/80 hover:bg-yellow-400/10 hover:text-yellow-400 transition flex items-center gap-3"
-                        >
-                          <FiCalendar className="w-4 h-4" />
-                          Appointments
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            navigate("/chats");
-                            setIsProfileOpen(false);
-                          }}
-                          className="w-full px-4 py-2.5 text-left text-sm text-white/80 hover:bg-yellow-400/10 hover:text-yellow-400 transition flex items-center gap-3 relative"
-                        >
-                          <FiMessageCircle className="w-4 h-4" />
-                          Messages
-                          {hasUnreadMessages && (
-                            <span className="ml-auto w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                          )}
-                        </button>
-                        
-                        <div className="border-t border-yellow-500/20 my-1" />
-                        
-                        <button
-                          onClick={handleLogout}
-                          className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/10 transition flex items-center gap-3"
-                        >
-                          <FiLogOut className="w-4 h-4" />
-                          Logout
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ) : (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate("/login")}
-                className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black px-4 sm:px-5 py-2 rounded-xl font-semibold shadow-lg transition-all duration-300 text-sm sm:text-base"
+    {/* Dropdown Menu */}
+    <AnimatePresence>
+      {isProfileOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+          transition={{ duration: 0.2 }}
+          className="absolute right-0 top-full mt-2 bg-black/95 backdrop-blur-md border border-yellow-500/30 rounded-xl shadow-2xl w-56 z-50 overflow-hidden"
+        >
+          <div className="py-2">
+            <div className="px-4 py-3 border-b border-yellow-500/20">
+              <p className="text-xs text-gray-400">
+                {localStorage.getItem("userType") === "Lawyer" ? "Logged in as" : "Signed in as"}
+              </p>
+              <p className="font-semibold text-yellow-400 truncate">
+                {localStorage.getItem("userType") === "Lawyer" 
+                  ? localStorage.getItem("lawyerName") || name 
+                  : name}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {localStorage.getItem("userType") === "Lawyer" ? "Lawyer Account" : "User Account"}
+              </p>
+            </div>
+            
+            <button
+              onClick={() => {
+                navigate("/myprofile");
+                setIsProfileOpen(false);
+              }}
+              className="w-full px-4 py-2.5 text-left text-sm text-white/80 hover:bg-yellow-400/10 hover:text-yellow-400 transition flex items-center gap-3"
+            >
+              <FiUser className="w-4 h-4" />
+              My Profile
+            </button>
+            
+            <button
+              onClick={() => {
+                navigate("/myappointments");
+                setIsProfileOpen(false);
+              }}
+              className="w-full px-4 py-2.5 text-left text-sm text-white/80 hover:bg-yellow-400/10 hover:text-yellow-400 transition flex items-center gap-3"
+            >
+              <FiCalendar className="w-4 h-4" />
+              Appointments
+            </button>
+            
+            {/* Only show Messages for regular users, not lawyers */}
+            {localStorage.getItem("userType") !== "Lawyer" && (
+              <button
+                onClick={() => {
+                  navigate("/chats");
+                  setIsProfileOpen(false);
+                }}
+                className="w-full px-4 py-2.5 text-left text-sm text-white/80 hover:bg-yellow-400/10 hover:text-yellow-400 transition flex items-center gap-3 relative"
               >
-                Sign In
-              </motion.button>
+                <FiMessageCircle className="w-4 h-4" />
+                Messages
+                {hasUnreadMessages && (
+                  <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
             )}
+            
+            <div className="border-t border-yellow-500/20 my-1" />
+            
+            <button
+              onClick={handleLogout}
+              className="w-full px-4 py-2.5 text-left text-sm text-red-400 hover:bg-red-500/10 transition flex items-center gap-3"
+            >
+              <FiLogOut className="w-4 h-4" />
+              Logout
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </div>
+) : (
+  <motion.button
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+    onClick={() => navigate("/login")}
+    className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black px-4 sm:px-5 py-2 rounded-xl font-semibold shadow-lg transition-all duration-300 text-sm sm:text-base"
+  >
+    Sign In
+  </motion.button>
+)}
 
             {/* Hamburger Menu Button (Mobile) */}
             <button
@@ -343,7 +388,9 @@ const NavBar = () => {
                         <FiMessageCircle className="w-5 h-5" />
                         <span className="font-medium text-base">Messages</span>
                         {hasUnreadMessages && (
-                          <span className="ml-auto w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
+                          <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                            {unreadCount}
+                          </span>
                         )}
                       </button>
                     </motion.div>

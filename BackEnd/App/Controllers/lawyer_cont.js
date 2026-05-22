@@ -298,7 +298,7 @@ async function loginlawyer(req, res) {
         id: lawyer._id,
         type: "Lawyer",
         email: lawyer.registration.email,
-        name: lawyer.registration.fullName
+        
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" } // Changed to 7 days for consistency
@@ -308,7 +308,7 @@ async function loginlawyer(req, res) {
       status: true,
       id: accountid,
       name: lawyer.registration.fullName,
-      usertoken: token,
+      token: token,
       message: "Login successful",
     });
 

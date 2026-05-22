@@ -250,15 +250,7 @@ function View_Lawyer_Profile() {
               </div>
 
               {/* Full-width "My Chats" button — visible and clear */}
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => navigate("/lawyer-chats")}
-                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-semibold rounded-xl shadow-lg transition-all text-sm"
-              >
-                <FiMessageCircle className="w-4 h-4" />
-                My Chats
-              </motion.button>
+             
             </motion.div>
           </div>
         </div>

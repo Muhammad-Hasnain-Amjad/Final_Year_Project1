@@ -153,6 +153,15 @@ appointmentRoutes.post("/", authMiddleware, async (req, res) => {
   try {
     const { lawyerId, date, time, caseType, description } = req.body;
     const userId = req.user.id;
+    const userType = req.user.type; // "User" or "Lawyer"
+    
+    // ✅ NEW CHECK: Prevent lawyers from booking other lawyers
+    if (userType === "Lawyer" || userType === "lawyer") {
+      return res.status(403).json({
+        success: false,
+        message: "You cannot book an appointment with a lawyer because you are also a lawyer. Lawyers can only manage their own appointments."
+      });
+    }
     
     // Validate userId
     if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -202,18 +211,21 @@ appointmentRoutes.post("/", authMiddleware, async (req, res) => {
         message: `This time slot is already booked. Please choose another time.`
       });
     }
-     // Check if the same user already has an appointment with this lawyer
+    
+    // Check if the same user already has an appointment with this lawyer
     const userExistingLawyer = await Appointment.findOne({
       userId,
       lawyerId,
       status: { $in: ["pending", "accepted", "ongoing"] }
     });
-     if (userExistingLawyer) {
+    
+    if (userExistingLawyer) {
       return res.status(400).json({
         success: false,
         message: "You already have an appointment with this lawyer"
       });
     }
+    
     // Optional: Check if lawyer has reached maximum appointments per day
     const appointmentsCount = await Appointment.countDocuments({
       lawyerId,
@@ -410,5 +422,88 @@ appointmentRoutes.patch("/:id/status", async (req, res) => {
     });
   }
 });
+ const getAllAppointments = async (req, res) => {
+  try {
+    const appointments = await Appointment.find()
+      .populate('userId', 'name')      // Just get client name
+      .populate('lawyerId', 'registration.fullName registration.fees')  // Get lawyer name & fees
+      .sort({ createdAt: -1 });
+
+    // Simple formatted data
+    const simpleData = appointments.map(apt => ({
+      id: apt._id,
+      clientName: apt.userId?.name,
+      lawyerName: apt.lawyerId?.registration?.fullName || 'N/A',
+      fees: apt.lawyerId?.registration?.fees || 0,
+      date: apt.date,
+      time: apt.time,
+      caseType: apt.caseType,
+      description: apt.description,
+      status: apt.status,
+      isPaid: apt.isPaid,
+      meetingLink: apt.meetingLink || 'Not yet',
+      createdAt: apt.createdAt
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: simpleData
+    });
+
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch appointments"
+    });
+  }
+};
+
+// Get single appointment by ID
+const getAppointmentById = async (req, res) => {
+  try {
+    const appointment = await Appointment.findById(req.params.id)
+      .populate('userId', 'name email phone')
+      .populate('lawyerId', 'registration.fullName registration.fees registration.experience');
+
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: "Appointment not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        id: appointment._id,
+        clientName: appointment.userId?.name || 'N/A',
+        clientEmail: appointment.userId?.email || 'N/A',
+        clientPhone: appointment.userId?.phone || 'N/A',
+        lawyerName: appointment.lawyerId?.registration?.fullName || 'N/A',
+        fees: appointment.lawyerId?.registration?.fees || 0,
+        date: appointment.date,
+        time: appointment.time,
+        caseType: appointment.caseType,
+        description: appointment.description,
+        status: appointment.status,
+        isPaid: appointment.isPaid,
+        meetingLink: appointment.meetingLink || 'Not yet'
+      }
+    });
+
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch appointment"
+    });
+  }
+};
+
+appointmentRoutes.get('/', getAllAppointments);
+
+// GET single appointment by ID
+appointmentRoutes.get('/:id', getAppointmentById);
 
 module.exports=appointmentRoutes;
