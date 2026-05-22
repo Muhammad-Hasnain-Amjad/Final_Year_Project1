@@ -12,6 +12,7 @@ import {
 } from "react-icons/fi";
 import { useChat } from "../../Context/ChatContext";
 import { toast } from "react-toastify";
+import api from "../../config/api";
 
 // backPath: "/chats" for user, "/lawyer-chats" for lawyer
 const ChatWindow = ({ backPath = "/chats" }) => {
@@ -42,7 +43,7 @@ const ChatWindow = ({ backPath = "/chats" }) => {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        `http://localhost:5000/chats/${chatId}/messages`,
+        `${api}/chats/${chatId}/messages`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const msgs = res.data.data || [];

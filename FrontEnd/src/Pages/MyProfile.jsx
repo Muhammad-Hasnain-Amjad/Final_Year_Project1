@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import api from "../config/api";
 
 const MyProfile = () => {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ const MyProfile = () => {
         return;
       }
 
-      const response = await axios.get(`http://localhost:5000/user/profile/${userId}`, {
+      const response = await axios.get(`${api}/user/profile/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -77,7 +78,7 @@ const MyProfile = () => {
         return;
       }
 
-      const response = await axios.patch(`http://localhost:5000/user/profile/${userId}`, 
+      const response = await axios.patch(`${api}/user/profile/${userId}`, 
         {
           name: formData.name,
           gender: formData.gender,

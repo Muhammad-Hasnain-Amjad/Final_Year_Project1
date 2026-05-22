@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { FaRobot, FaTimes, FaPaperPlane, FaWindowMinimize } from 'react-icons/fa';
+import api from "../config/api";
 
 export default function LegalChat() {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,7 +38,7 @@ export default function LegalChat() {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/chats/ask', {
+      const response = await axios.post(`${api}/chats/ask`, {
         question: input
       });
 

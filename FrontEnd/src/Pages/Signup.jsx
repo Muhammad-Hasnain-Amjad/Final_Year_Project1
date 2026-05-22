@@ -4,9 +4,10 @@ import { Link } from "react-router-dom";
 import Alert from '../Components/Alert';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import api from "../config/api";
 
 export default function Signup() {
-  const baseURL = "http://localhost:5000/user";
+  const baseURL = `${api}/user`;
   const navigate = useNavigate();
 
   // -----------------------------

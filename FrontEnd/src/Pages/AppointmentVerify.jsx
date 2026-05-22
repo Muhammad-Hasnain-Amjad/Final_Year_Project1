@@ -14,6 +14,7 @@ import {
   FaRegFrown
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import api from "../config/api";
 
 const AppointmentVerify = () => {
   const [searchParams] = useSearchParams();
@@ -37,7 +38,7 @@ const AppointmentVerify = () => {
       try {
         const token = localStorage.getItem('token');
         const response = await axios.post(
-          'http://localhost:5000/appointments/verify-payment',
+          `${api}/appointments/verify-payment`,
           { appointmentId, success },
           { headers: { Authorization: `Bearer ${token}` } }
         );

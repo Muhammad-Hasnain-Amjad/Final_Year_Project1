@@ -11,6 +11,7 @@ import {
   FiMessageCircle, FiSearch, FiUser, FiLoader
 } from "react-icons/fi";
 import { useChat } from "../../Context/ChatContext";
+import api from "../../config/api";
 
 // basePath: "/chats" for user, "/lawyer-chats" for lawyer
 const ChatList = ({ basePath = "/chats" }) => {
@@ -22,7 +23,7 @@ const ChatList = ({ basePath = "/chats" }) => {
     queryKey: ["my-chats", basePath],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/chats/my-chats", {
+      const res = await axios.get(`${api}/chats/my-chats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data.data || [];

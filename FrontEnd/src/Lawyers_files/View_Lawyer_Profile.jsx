@@ -16,6 +16,7 @@ import Loader from "../Components/Loader";
 import { toast } from "react-toastify";
 import Select from "react-select";
 import LawyerComments from "./LawyerComments";
+import api from "../config/api";
 
 // ─────────────────────────────────────────────────────────────────────────────
 const practiceAreaOptions = [
@@ -87,7 +88,7 @@ const IconButton = ({ icon, label, onClick, highlight }) => {
 function View_Lawyer_Profile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const BaseURL = "http://localhost:5000/lawyer";
+  const BaseURL = `${api}/lawyer`;
 
   const [lawyer, setLawyer]           = useState(null);
   const [editMode, setEditMode]       = useState(false);

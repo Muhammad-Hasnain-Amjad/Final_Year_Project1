@@ -6,6 +6,8 @@ import Loader from '../Components/Loader'
 import ShowModel from "../Components/ShowModel";
 import TempMessage from "../Components/TempMessage";
 import Select from "react-select";
+import api from "../config/api";
+
 export default function Law_Reg() {
   const practiceAreaOptions = [
   { value: "Property / Land", label: "Property / Land" },
@@ -63,7 +65,7 @@ const customStyles = {
     }
   })
 };
-  const BaseURL = "http://localhost:5000/lawyer";
+  const BaseURL = `${api}/lawyer`;
  const [loading, setLoading] = useState(false);
 
   const [showPassword, setShowPassword] = useState(true);

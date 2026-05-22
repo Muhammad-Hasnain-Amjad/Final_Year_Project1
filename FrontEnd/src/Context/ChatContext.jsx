@@ -1,6 +1,7 @@
 // src/Context/ChatContext.jsx
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
 import { io } from "socket.io-client";
+import api from "../config/api";
 
 const ChatContext = createContext();
 
@@ -16,8 +17,9 @@ export const ChatProvider = ({ children }) => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    // Connect socket
-    const socket = io("http://localhost:5000", {
+    // Connect socket - extract host from api URL
+    const socketUrl = api.replace(/\/$/, ""); // Remove trailing slash if any
+    const socket = io(socketUrl, {
       auth: { token },
       transports: ["websocket"],
       reconnectionAttempts: 5,

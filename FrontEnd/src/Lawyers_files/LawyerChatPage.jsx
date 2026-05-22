@@ -5,6 +5,7 @@ import { Routes, Route } from "react-router-dom";
 import { FiMessageCircle } from "react-icons/fi";
 import ChatList from "../Components/Chat/ChatList";
 import ChatWindow from "../Components/Chat/ChatWindow";
+import api from "../config/api";
 
 // You can swap NavBar with your LawyerNavBar if you have one
 // import LawyerNavBar from "../Components/LawyerNavBar";
@@ -31,7 +32,7 @@ const LawyerChatPage = () => {
         >
           {/* LEFT: Chat list - same API, lawyer JWT auto-filters their chats */}
           <div className="border-r border-gray-800/60 overflow-hidden">
-            <ChatList basePath="/lawyer-chats" />
+            <ChatList basePath="/lawyer-chats" apiBaseUrl={api} />
           </div>
 
           {/* RIGHT: Conversation */}
@@ -40,7 +41,7 @@ const LawyerChatPage = () => {
               <Route index element={<EmptyState />} />
               <Route
                 path=":chatId"
-                element={<ChatWindow backPath="/lawyer-chats" />}
+                element={<ChatWindow backPath="/lawyer-chats" apiBaseUrl={api} />}
               />
             </Routes>
           </div>

@@ -9,6 +9,7 @@ import {
   FiCheckCircle, FiXCircle, FiMessageCircle 
 } from "react-icons/fi";
 import { toast } from "react-toastify";
+import api from "../config/api";
 
 // Fetch function for lawyers with filters
 const fetchLawyers = async (filters) => {
@@ -17,8 +18,8 @@ const fetchLawyers = async (filters) => {
   if (filters.caseType) params.append("caseType", filters.caseType);
   
   const url = params.toString() 
-    ? `http://localhost:5000/lawyer/filter?${params.toString()}`
-    : "http://localhost:5000/lawyer/get";
+    ? `${api}/lawyer/filter?${params.toString()}`
+    : `${api}/lawyer/get`;
     
   const res = await axios.get(url);
   return res.data.data;
@@ -84,7 +85,7 @@ const LawyerCard = ({ lawyer }) => {
       console.log("Starting chat with lawyer:", lawyer._id);
 
       const response = await axios.post(
-        "http://localhost:5000/chats/create",
+        `${api}/chats/create`,
         {
           otherUserId: lawyer._id,
           otherUserType: "Lawyer"

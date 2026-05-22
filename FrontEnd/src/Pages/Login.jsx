@@ -4,10 +4,11 @@ import axios from "axios";
 import Alert from "../Components/Alert";
 import { toast } from "react-toastify";
 import { FaEye, FaEyeSlash, FaEnvelope, FaLock, FaArrowLeft } from "react-icons/fa";
+import api from "../config/api";
 
 export default function Login() {
   const navigate = useNavigate();
-  const baseURL = "http://localhost:5000";
+  const baseURL = `${api}`;
 
   // Login State
   const [form, setForm] = useState({ email: "", password: "" });
@@ -54,9 +55,9 @@ export default function Login() {
     try {
       let url = "";
       if (role === "lawyer") {
-        url = "http://localhost:5000/lawyer/login";
+        url = `${baseURL}/lawyer/login`;
       } else {
-        url = "http://localhost:5000/user/login";
+        url = `${baseURL}/user/login`;
       }
 
       const result = await axios.post(url, {

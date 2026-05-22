@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FiMessageCircle } from "react-icons/fi";
 import { toast } from "react-toastify";
+import api from "../../config/api";
 
 const StartChatButton = ({
   lawyerId,
@@ -35,7 +36,7 @@ const StartChatButton = ({
     setLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost:5000/chats/create",
+        `${api}/chats/create`,
         { otherUserId: lawyerId, otherUserType: "Lawyer" },
         { headers: { Authorization: `Bearer ${token}` } }
       );

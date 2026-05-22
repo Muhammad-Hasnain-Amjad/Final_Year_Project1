@@ -10,6 +10,7 @@ import {
   FaMoneyBillWave, FaWallet, FaQuestionCircle,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
+import api from "../config/api";
 
 const LawyerAppointments = () => {
   const queryClient = useQueryClient();
@@ -31,7 +32,7 @@ const LawyerAppointments = () => {
       if (!lawyerId || !token) return [];
       try {
         const res = await axios.get(
-          `http://localhost:5000/appointments/lawyer/${lawyerId}`,
+          `${api}/appointments/lawyer/${lawyerId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         return res.data.data || [];
@@ -47,7 +48,7 @@ const LawyerAppointments = () => {
   const markPaymentPaidMutation = useMutation({
     mutationFn: async ({ id }) => {
       const res = await axios.patch(
-        `http://localhost:5000/appointments/${id}/payment`,
+        `${api}/appointments/${id}/payment`,
         { isPaid: true },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -70,7 +71,7 @@ const LawyerAppointments = () => {
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }) => {
       const res = await axios.patch(
-        `http://localhost:5000/appointments/${id}/status`,
+        `${api}/appointments/${id}/status`,
         { status },
         { headers: { Authorization: `Bearer ${token}` } }
       );

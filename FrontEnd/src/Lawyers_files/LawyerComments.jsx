@@ -3,13 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { FaStar, FaCommentDots, FaUserCircle, FaRegClock } from "react-icons/fa";
 import { motion } from "framer-motion";
+import api from "../config/api";
 
 export default function LawyerComments({ lawyerId }) {
   // Fetch comments from API
   const { data: comments, isLoading, error } = useQuery({
     queryKey: ["comments", lawyerId],
     queryFn: async () => {
-      const response = await axios.get(`http://localhost:5000/comments/lawyer/${lawyerId}`);
+      const response = await axios.get(`${api}/comments/lawyer/${lawyerId}`);
       return response.data.data || [];
     },
     enabled: !!lawyerId,

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import logo from "../assets/logo.jpeg";
 import profilepic from "../assets/profile_icon.png";
+import api from "../config/api";
 
 const NavBar = () => {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ const NavBar = () => {
     if (!token) return;
     
     try {
-      const response = await axios.get('http://localhost:5000/chats/unread-count', {
+      const response = await axios.get(`${api}/chats/unread-count`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       

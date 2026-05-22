@@ -19,6 +19,7 @@ import Swal from "sweetalert2";
 import AppointmentBooking from "../Components/AppointmentBooking";
 import StartChatButton from "../Components/Chat/StartChatButton";  // ✅ Message button
 import { toast } from "react-toastify";
+import api from "../config/api";
 
 // ─────────────────────────────────────────────────────────────────────────────
 const LawyerProfile = () => {
@@ -48,7 +49,7 @@ const LawyerProfile = () => {
   const { data: lawyer, isLoading, refetch } = useQuery({
     queryKey: ["lawyer", id],
     queryFn: async () => {
-      const res = await axios.get(`http://localhost:5000/lawyer/idlawyer/${id}`);
+      const res = await axios.get(`${api}/lawyer/idlawyer/${id}`);
       return res.data.data;
     },
   });
@@ -58,7 +59,7 @@ const LawyerProfile = () => {
     queryKey: ["comments", id],
     queryFn: async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/comments/lawyer/${id}`);
+        const res = await axios.get(`${api}/comments/lawyer/${id}`);
         return res.data.data || [];
       } catch { return []; }
     },
@@ -71,7 +72,7 @@ const LawyerProfile = () => {
     if (!token) { toast.error("Please login to submit a review"); return; }
     try {
       const res = await axios.post(
-        "http://localhost:5000/comments",
+        `${api}/comments`,
         { lawyerId: id, rating: newComment.rating, comment: newComment.comment },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -96,7 +97,7 @@ const LawyerProfile = () => {
     if (!token) { toast.error("Please login"); return; }
     try {
       const res = await axios.put(
-        `http://localhost:5000/comments/${editingComment._id}`,
+        `${api}/comments/${editingComment._id}`,
         { rating: editData.rating, comment: editData.comment },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -120,7 +121,7 @@ const LawyerProfile = () => {
     const token = localStorage.getItem("token");
     if (!token) { toast.error("Please login"); return; }
     try {
-      const res = await axios.delete(`http://localhost:5000/comments/${commentId}`, {
+      const res = await axios.delete(`${api}/comments/${commentId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.data.success) {

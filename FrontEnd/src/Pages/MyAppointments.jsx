@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import axios from "axios";
+import api from "../config/api";
 
 const MyAppointments = () => {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ const MyAppointments = () => {
       }
       
       try {
-        const response = await axios.get("http://localhost:5000/appointments/user", {
+        const response = await axios.get(`${api}/appointments/user`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         return response.data.data || [];
@@ -46,7 +47,7 @@ const MyAppointments = () => {
     mutationFn: async (appointmentId) => {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:5000/appointments/payment",
+        `${api}/appointments/payment`,
         { appointmentId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
