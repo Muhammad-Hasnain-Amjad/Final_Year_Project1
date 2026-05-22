@@ -9,7 +9,7 @@ import civ_lawyer from '../assets/CivilLawyer.jpeg'
 import crim_lawyer from '../assets/criminal_lawyer.jpeg'
 import fam_lawyer from '../assets/familylawyer.jpeg'
 import prop_lawyer from '../assets/PropertyLawyer.jpeg'
-import tax_lawyer from '../assets/Tax_lawyer.jpeg'
+import tax_lawyer from '../assets/Tax_Lawyer.jpeg'
 import privatechat from '../assets/privatechat.png';
 import trustedlawyers from '../assets/trustedlawyers.jpg';
 import trusteddr from '../assets/trusteddr.png';
