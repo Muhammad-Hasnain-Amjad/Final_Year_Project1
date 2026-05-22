@@ -104,3 +104,6 @@ server.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
   console.log(`✅ Socket.IO connected`);
 });
+app.get("/", (req, res) => {
+  res.send("Server is running");
+});
