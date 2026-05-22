@@ -1,5 +1,4 @@
 import React from "react";
-import bgvideo from "../assets/bg_video.mp4";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -20,7 +19,7 @@ const Header = () => {
 
       {/* Background Video */}
       <video
-        src={bgvideo}
+        src="/bg_video.mp4"
         autoPlay
         loop
         muted
