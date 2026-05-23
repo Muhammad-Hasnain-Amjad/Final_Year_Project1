@@ -8,7 +8,6 @@ dotenv.config();
 
 // DB connection
 const connectDB = require("./Config/DB_Config.js");
-
 // Routes
 const { lawyerrouter } = require("./App/Routes/Lawyerroute.js");
 const Drrouter = require("./App/Routes/Drroute.js");
@@ -76,7 +75,7 @@ initializeSocket(io);
 // =====================
 // START SERVER AFTER DB
 // =====================
-const PORT = process.env.PORT || 5000;
+let PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   await connectDB();

@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { FaRobot, FaTimes, FaPaperPlane, FaWindowMinimize } from 'react-icons/fa';
-import api from "../config/api";
+import api from "../../config/api";  // Two levels up: Components/Chat → src → config  
 
 export default function LegalChat() {
   const [isOpen, setIsOpen] = useState(false);

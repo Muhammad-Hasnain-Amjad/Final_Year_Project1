@@ -1,4 +1,3 @@
-// Config/DB_Config.js
 const mongoose = require("mongoose");
 
 const connectDB = async () => {
@@ -7,7 +6,7 @@ const connectDB = async () => {
     console.log("MongoDB Connected");
   } catch (error) {
     console.log("MongoDB Connection Error:", error.message);
-    process.exit(1); // stop server if DB fails
+    process.exit(1);
   }
 };
 
